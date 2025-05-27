@@ -1,0 +1,48 @@
+{
+  "sources": [
+    {
+      "name": "Kodinerds Repo",
+      "description": "Il repository contiene diversi addon sviluppati e mantenuti dall'omonima community, come ad esempio DAZN, DMax, Playlist Loader, Youtube-dl Control e altri...",
+      "url": "https://repo.kodinerds.net/addons/repository.kodinerds/"
+    },
+    {
+      "name": "The Crew",
+      "description": "test",
+      "url": "https://team-crew.github.io/"
+    },
+    {
+      "name": "S4Me Repo",
+      "description": "Stream4Me: ricerca film e serie dai siti italiani.",
+      "url": "https://stream4me.github.io/repo/"
+    },
+    {
+      "name": "Mandrakodi",
+      "description": "Questo addon permette la ricerca e la visione di eventi sportivi live. Contiene una sezione di VOD tra cui anche contenuti un po' datati e XXX. Inoltre mette a disposizione canali live del DTT tra cui anche canali regionali, canali sportivi, internazionali, Samsung TV, Pluto TV e webcam. Entrando nel gruppo telegram è possibile richiedere l'accesso per l'area VIP in cui è possibile trovare altri contenuti Live e VOD.",
+      "url": "https://mandrakodi.github.io/"
+    },
+    {
+      "name": "WLTV Helper",
+      "description": "Acronimo di World Live TV, questa nuova versione dell'addon offre la possibilità di personalizzare la lista iptv dei canali in chiaro del DTT ed usarla nel PVR Simple Client. Inoltre l'addon mette a disposizione un'intera sezione di canali televisivi e webcam di tutto il mondo.",
+      "url": "https://worldlivetv.github.io/repo/"
+    },
+    {
+      "name": "The Groove 360",
+      "description": "Questo addon contiene al suo interno altri piccoli script che ne completano le funzionalità. Consente di cercare contenuti multimediali sui principali siti di streaming. Sono inoltre disponibili delle sezioni in cui trovare link a canali televisivi free e pay-tv. Per il supporto e l'installazione rimandiamo al gruppo telegram di riferimento: @thegroove360group",
+      "url": "https://thegroove360.org/addons/"
+    },
+    {
+      "name": "Bugatsinho (sporthd)",
+      "url": "https://bugatsinho.github.io/repo"
+    },
+    {
+      "name": "Amazon VOD",
+      "description": "Addon che consente di accedere alla piattaforma di streaming ufficiale tramite regolare account. È necessario eseguire la procedura di login.",
+      "url": "https://github.com/Sandmann79/xbmc/releases/tag/Repository"
+    },
+    {
+      "name": "Netflix",
+      "description": "Addon che consente di accedere alla piattaforma di streaming ufficiale tramite regolare account. È necessario eseguire la procedura di login.",
+      "url": "https://castagnait.github.io/repository.castagnait/"
+    }
+  ]
+}
