@@ -1,57 +1,127 @@
 {
+
   "sources": [
+
     {
+
       "name": "Kodinerds Repo",
+
       "description": "Il repository contiene diversi addon sviluppati e mantenuti dall'omonima community, come ad esempio DAZN, DMax, Playlist Loader, Youtube-dl Control e altri...",
+
       "url": "https://repo.kodinerds.net/addons/repository.kodinerds/",
+
       "telegram": "https://t.me/esempio"
+
     },
+
     {
-      "name": "The Crew",
+
+      "name": "The Crew Repo",
+
       "description": "test",
+
       "url": "https://team-crew.github.io/",
-      "telegram": "https://t.me/esempio"
+
+      "telegram": "https://t.me/joinchat/Lkjo-xUTCNdY8FsChZOdHg
+
     },
+
     {
+
       "name": "S4Me Repo",
-      "description": "Stream4Me: ricerca film e serie dai siti italiani.",
+
+      "description": "Repo che consente di installare l'addon Stream4Me con la quale è possibile effettuare la ricerca di film e serie TV dai vari siti Italiani, e non solo.",
+
       "url": "https://stream4me.github.io/repo/",
-      "telegram": "https://t.me/kodiitalia"
+
+      "telegram": "https://t.me/stream4me_addon"
+
     },
+
     {
-      "name": "Mandrakodi",
-      "description": "Questo addon permette la ricerca e la visione di eventi sportivi live. Contiene una sezione di VOD tra cui anche contenuti un po' datati e XXX. Inoltre mette a disposizione canali live del DTT tra cui anche canali regionali, canali sportivi, internazionali, Samsung TV, Pluto TV e webcam. Entrando nel gruppo telegram \u00e8 possibile richiedere l'accesso per l'area VIP in cui \u00e8 possibile trovare altri contenuti Live e VOD.",
+
+      "name": "Mandrakodi Repo",
+
+      "description": "Repo che consente di isntallare l'addon Mandrakodi, questo addon permette la ricerca e la visione di eventi sportivi live. Contiene una sezione di VOD tra cui anche contenuti un po' datati e XXX. Inoltre mette a disposizione canali live del DTT tra cui anche canali regionali, canali sportivi, internazionali, Samsung TV, Pluto TV e webcam. Entrando nel gruppo telegram \u00e8 possibile richiedere l'accesso per l'area VIP in cui \u00e8 possibile trovare altri contenuti Live e VOD.",
+
       "url": "https://mandrakodi.github.io/",
-      "telegram": "https://t.me/esempio"
+
+      "telegram": "https://t.me/mandrakodi_support"
+
     },
+
     {
-      "name": "WLTV Helper",
-      "description": "Acronimo di World Live TV, questa nuova versione dell'addon offre la possibilit\u00e0 di personalizzare la lista iptv dei canali in chiaro del DTT ed usarla nel PVR Simple Client. Inoltre l'addon mette a disposizione un'intera sezione di canali televisivi e webcam di tutto il mondo.",
+
+      "name": "WLTV Repo",
+
+      "description": "Repo che cosente di installare l'addon WLTV, l'addon offre la possibilit\u00e0 di personalizzare la lista iptv dei canali in chiaro del DTT ed usarla nel PVR Simple Client. Inoltre l'addon mette a disposizione un'intera sezione di canali televisivi e webcam di tutto il mondo.",
+
       "url": "https://worldlivetv.github.io/repo/",
-      "telegram": "https://t.me/esempio"
+
+      "telegram": "https://t.me/WorldLiveTV"
+
     },
+
     {
-      "name": "The Groove 360",
-      "description": "Questo addon contiene al suo interno altri piccoli script che ne completano le funzionalit\u00e0. Consente di cercare contenuti multimediali sui principali siti di streaming. Sono inoltre disponibili delle sezioni in cui trovare link a canali televisivi free e pay-tv. Per il supporto e l'installazione rimandiamo al gruppo telegram di riferimento: @thegroove360group",
+
+      "name": "The Groove 360 Repo",
+
+      "description": "Repo che consente di installare l'addon The Groove 360, questo addon contiene al suo interno altri piccoli script che ne completano le funzionalit\u00e0. Consente di cercare contenuti multimediali sui principali siti di streaming. Sono inoltre disponibili delle sezioni in cui trovare link a canali televisivi free e pay-tv. Per il supporto e l'installazione rimandiamo al gruppo telegram di riferimento: @thegroove360group",
+
       "url": "https://thegroove360.org/addons/",
-      "telegram": "https://t.me/esempio"
+
+      "telegram": "https://t.me/thegroove360group"
+
     },
+
     {
-      "name": "Bugatsinho (sporthd)",
-      "url": "https://bugatsinho.github.io/repo",
-      "telegram": "https://t.me/esempio"
+
+      "name": "Bugatsinho Repo (Sporthd)",
+
+      "description": "Repo che consentesente di installare l'addon Sporthd con la quale è possibile visionare numerosi contenuti sportivi"
+
+	  "url": "https://bugatsinho.github.io/repo",
+
+      "telegram": "https://t.me/joinchat/ETXTo1LHC4mkgdM1ysbH6g
+
     },
+
     {
-      "name": "Amazon VOD",
-      "description": "Addon che consente di accedere alla piattaforma di streaming ufficiale tramite regolare account. \u00c8 necessario eseguire la procedura di login.",
+
+      "name": "Sandmann79 Repo (Amazon VOD)",
+
+      "description": "Repo dello sviluppatore Sandmann79 dalla quale è possbile reperire l'addon Amazon VOD, che consente di accedere alla piattaforma di streaming ufficiale tramite regolare account. \u00c8 necessario eseguire la procedura di login.",
+
       "url": "https://github.com/Sandmann79/xbmc/releases/tag/Repository",
+
       "telegram": "https://t.me/esempio"
+
     },
+
     {
-      "name": "Netflix",
-      "description": "Addon che consente di accedere alla piattaforma di streaming ufficiale tramite regolare account. \u00c8 necessario eseguire la procedura di login.",
+
+      "name": "Castagnait Repo (Netflix)",
+
+      "description": "Repo dello sviluppatore Castagnait, questa repo conesente di instlalare l'addon Netflix, addon che consente di accedere alla piattaforma di streaming ufficiale tramite regolare account. \u00c8 necessario eseguire la procedura di login.",
+
       "url": "https://castagnait.github.io/repository.castagnait/",
+
       "telegram": "https://t.me/esempio"
-    }
+
+    },
+
+	{
+
+      "name": "Jurialmunkey Repo (TheMovieDb Helper e Skin Artic",
+
+      "description": "Repo dello sviluppatore Jurialmunkey, dalla quale \u00c8 possibile installare TheMovieDb Helper e le varie Skin Artic",
+
+      "url": "https://jurialmunkey.github.io/repository.jurialmunkey/",
+
+      "telegram": "https://t.me/esempio"
+
+	}
+
   ]
+
 }
