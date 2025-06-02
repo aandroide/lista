@@ -80,7 +80,7 @@
 
       "description": "Repo che consentesente di installare l'addon Sporthd con la quale è possibile visionare numerosi contenuti sportivi",
 
-      "url": "https://bugatsinho.github.io/repo",
+      "url": "https://bugatsinho.github.io/repo/",
 
       "telegram": "https://t.me/joinchat/ETXTo1LHC4mkgdM1ysbH6g"
 
@@ -110,7 +110,7 @@
 
     },
 
-	{
+    {
 
       "name": "Jurialmunkey Repo (TheMovieDb Helper e Skin Artic",
 
@@ -120,7 +120,7 @@
 
       "telegram": "https://t.me/esempio"
 
-	}
+     }
 
   ]
 
