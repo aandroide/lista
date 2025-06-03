@@ -92,7 +92,7 @@
 
       "description": "Repo dello sviluppatore Sandmann79 dalla quale è possbile reperire l'addon Amazon VOD, che consente di accedere alla piattaforma di streaming ufficiale tramite regolare account. \u00c8 necessario eseguire la procedura di login.",
 
-      "url": "https://github.com/Sandmann79/xbmc/releases/tag/Repository",
+      "url": "https://api.github.com/repos/Sandmann79/xbmc/releases/tags/Repository",
 
       "telegram": "https://t.me/esempio"
 
