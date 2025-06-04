@@ -60,3 +60,34 @@ Questo addon per Kodi permette di:
     }
   ]
 }
+
+---
+
+⚙️ Configurazione GitHub
+
+L'addon consente di modificare dinamicamente il file addons.json remoto tramite impostazioni:
+
+GitHub Username
+
+Repository
+
+Branch
+
+
+Il file viene cercato in:
+
+https://raw.githubusercontent.com/{user}/{repo}/{branch}/addons.json
+
+
+---
+
+📌 Note aggiuntive
+
+Non sovrascrive sources.xml, ma lo aggiorna in modo sicuro
+
+Il messaggio iniziale avvisa l’utente di unirsi ai canali Telegram ufficiali
+
+Include fallback locale e gestione errori se GitHub non è disponibile
+
+
+--- 
