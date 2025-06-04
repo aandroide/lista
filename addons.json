@@ -118,7 +118,16 @@
 
       "url": "https://jurialmunkey.github.io/repository.jurialmunkey/"
 
-     }
+     },
+    {
+
+      "name": "test",
+
+      "description": "prova",
+
+      "url": "https://test.it"
+
+    }
 
   ]
 
