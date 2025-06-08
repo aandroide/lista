@@ -1,276 +1,278 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <window type="dialog" id="13000">
-    <defaultcontrol>100</defaultcontrol>
-    <allowoverlay>true</allowoverlay>
-    <controls>
-        <!-- Sfondo trasparente globale -->
-        <control type="image">
+  <defaultcontrol>100</defaultcontrol>
+  <allowoverlay>true</allowoverlay>
+  <controls>
+    <!-- Sfondo trasparente globale -->
+    <control type="image">
+      <left>0</left>
+      <top>0</top>
+      <width>1920</width>
+      <height>1080</height>
+      <texture>dialog-border.png</texture>
+      <colordiffuse>00FFFFFF</colordiffuse>
+    </control>
+
+    <!-- Colonna sinistra -->
+    <control type="group" id="10001">
+      <left>0</left>
+      <top>0</top>
+      <width>960</width>
+      <height>1080</height>
+
+      <control type="image">
+        <width>960</width>
+        <height>1080</height>
+        <texture>dialog-back.png</texture>
+        <colordiffuse>AAFFFFFF</colordiffuse>
+      </control>
+
+      <control type="label">
+        <left>40</left>
+        <top>40</top>
+        <width>880</width>
+        <height>40</height>
+        <label>Raccolta Addon &amp; Repository</label>
+        <font>font30</font>
+        <textcolor>AAFFFFFF</textcolor>
+      </control>
+
+      <control type="image">
+        <left>40</left>
+        <top>85</top>
+        <width>880</width>
+        <height>1</height>
+        <texture colordiffuse="66FFFFFF">white.png</texture>
+      </control>
+
+      <!-- LISTA DEI REPO -->
+      <control type="list" id="100">
+        <left>40</left>
+        <top>100</top>
+        <width>880</width>
+        <height>700</height>
+        <viewtype label="list">list</viewtype>
+        <pagecontrol>61</pagecontrol>
+        <scrolltime>200</scrolltime>
+        <orientation>vertical</orientation>
+        <itemlayout height="50" width="880">
+          <control type="label">
             <left>0</left>
             <top>0</top>
-            <width>1920</width>
-            <height>1080</height>
-            <texture>dialog-border.png</texture>
-            <colordiffuse>00FFFFFF</colordiffuse>
-        </control>
-
-        <!-- Colonna sinistra -->
-        <control type="group" id="10001">
+            <width>540</width>
+            <height>50</height>
+            <font>font13</font>
+            <label>$INFO[ListItem.Label]</label>
+            <textcolor>white</textcolor>
+          </control>
+          <control type="image">
+            <left>560</left>
+            <top>15</top>
+            <width>25</width>
+            <height>25</height>
+            <texture>check.png</texture>
+            <visible>String.IsEqual(ListItem.Property(checked),true)</visible>
+          </control>
+          <control type="image">
+            <left>560</left>
+            <top>15</top>
+            <width>25</width>
+            <height>25</height>
+            <texture>no.png</texture>
+            <visible>String.IsEqual(ListItem.Property(checked),false)</visible>
+          </control>
+          <control type="label">
+            <left>600</left>
+            <top>5</top>
+            <width>200</width>
+            <height>40</height>
+            <font>font13</font>
+            <label>$INFO[ListItem.Property(action_label)]</label>
+            <align>center</align>
+            <textcolor>white</textcolor>
+          </control>
+        </itemlayout>
+        <focusedlayout height="50" width="880">
+          <control type="label">
             <left>0</left>
             <top>0</top>
-            <width>960</width>
-            <height>1080</height>
+            <width>540</width>
+            <height>50</height>
+            <font>font13</font>
+            <label>$INFO[ListItem.Label]</label>
+            <textcolor>green</textcolor>
+          </control>
+          <control type="image">
+            <left>560</left>
+            <top>15</top>
+            <width>25</width>
+            <height>25</height>
+            <texture>check.png</texture>
+            <visible>String.IsEqual(ListItem.Property(checked),true)</visible>
+          </control>
+          <control type="image">
+            <left>560</left>
+            <top>15</top>
+            <width>25</width>
+            <height>25</height>
+            <texture>no.png</texture>
+            <visible>String.IsEqual(ListItem.Property(checked),false)</visible>
+          </control>
+          <control type="label">
+            <left>600</left>
+            <top>5</top>
+            <width>200</width>
+            <height>40</height>
+            <font>font13</font>
+            <label>$INFO[ListItem.Property(action_label)]</label>
+            <align>center</align>
+            <textcolor>green</textcolor>
+          </control>
+        </focusedlayout>
+      </control>
 
-            <control type="image">
-                <width>960</width>
-                <height>1080</height>
-                <texture>dialog-back.png</texture>
-                <colordiffuse>AAFFFFFF</colordiffuse>
-            </control>
+      <!-- Pulsanti impilati uno sotto l'altro -->
+      <control type="button" id="500">
+        <label>Aggiungi Tutti</label>
+        <left>40</left>
+        <top>810</top>
+        <width>880</width>
+        <height>60</height>
+        <font>font13</font>
+        <align>center</align>
+        <textcolor>white</textcolor>
+        <texturenofocus border="0,0,0,0">button-nofocus.png</texturenofocus>
+        <texturefocus border="0,0,0,0">button-focus.png</texturefocus>
+      </control>
 
-            <control type="label">
-                <left>40</left>
-                <top>40</top>
-                <width>880</width>
-                <height>40</height>
-                <label>Raccolta Addon &amp; Repository</label>
-                <font>font30</font>
-                <textcolor>AAFFFFFF</textcolor>
-            </control>
+      <control type="button" id="202">
+        <label>Apri Gestore File</label>
+        <left>40</left>
+        <top>880</top>
+        <width>880</width>
+        <height>60</height>
+        <font>font13</font>
+        <align>center</align>
+        <textcolor>white</textcolor>
+        <texturenofocus border="0,0,0,0">button-nofocus.png</texturenofocus>
+        <texturefocus border="0,0,0,0">button-focus.png</texturefocus>
+        <onClick>RunScript(special://home/addons/plugin.program.addonrepoinstaller/resources/lib/filemanager.py)</onClick>
+      </control>
 
-            <!-- Riga orizzontale sotto il titolo sinistro -->
-            <control type="image">
-                <left>40</left>
-                <top>85</top>
-                <width>880</width>
-                <height>1</height>
-                <texture colordiffuse="66FFFFFF">white.png</texture>
-            </control>
+      <control type="button" id="203">
+        <label>Apri Installa da file zip</label>
+        <left>40</left>
+        <top>950</top>
+        <width>880</width>
+        <height>60</height>
+        <font>font13</font>
+        <align>center</align>
+        <textcolor>white</textcolor>
+        <texturenofocus border="0,0,0,0">button-nofocus.png</texturenofocus>
+        <texturefocus border="0,0,0,0">button-focus.png</texturefocus>
+        <onClick>RunScript(special://home/addons/plugin.program.addonrepoinstaller/resources/lib/installforzip.py)</onClick>
+      </control>
 
-            <!-- LISTA DEI REPO -->
-            <control type="list" id="100">
-                <left>40</left>
-                <top>100</top>
-                <width>880</width>
-                <height>700</height>  <!-- Ridotta altezza per fare spazio ai pulsanti -->
-                <viewtype label="list">list</viewtype>
-                <pagecontrol>61</pagecontrol>
-                <scrolltime>200</scrolltime>
-                <orientation>vertical</orientation>
+      <control type="button" id="700">
+        <label>Rimuovi Tutti</label>
+        <left>40</left>
+        <top>1020</top>
+        <width>880</width>
+        <height>60</height>
+        <font>font13</font>
+        <align>center</align>
+        <textcolor>white</textcolor>
+        <texturenofocus border="0,0,0,0">button-nofocus.png</texturenofocus>
+        <texturefocus border="0,0,0,0">button-focus.png</texturefocus>
+      </control>
+    </control>
 
-                <!-- Layout per gli elementi NON interattivo -->
-                <itemlayout height="50" width="880">
-                    <control type="label">
-                        <left>0</left>
-                        <top>0</top>
-                        <width>540</width>
-                        <height>50</height>
-                        <font>font13</font>
-                        <label>$INFO[ListItem.Label]</label>
-                        <textcolor>white</textcolor>
-                    </control>
-                    <control type="image">
-                        <left>560</left>
-                        <top>15</top>
-                        <width>25</width>
-                        <height>25</height>
-                        <texture>check.png</texture>
-                        <visible>String.IsEqual(ListItem.Property(checked),true)</visible>
-                    </control>
-                    <control type="image">
-                        <left>560</left>
-                        <top>15</top>
-                        <width>25</width>
-                        <height>25</height>
-                        <texture>no.png</texture>
-                        <visible>String.IsEqual(ListItem.Property(checked),false)</visible>
-                    </control>
-                    <control type="label">
-                        <left>600</left>
-                        <top>5</top>
-                        <width>200</width>
-                        <height>40</height>
-                        <font>font13</font>
-                        <label>$INFO[ListItem.Property(action_label)]</label>
-                        <align>center</align>
-                        <textcolor>white</textcolor>
-                    </control>
-                </itemlayout>
+    <!-- Colonna destra -->
+    <control type="group" id="10002">
+      <left>960</left>
+      <top>0</top>
+      <width>960</width>
+      <height>1080</height>
 
-                <!-- Layout per l'elemento selezionato -->
-                <focusedlayout height="50" width="880">
-                    <control type="label">
-                        <left>0</left>
-                        <top>0</top>
-                        <width>540</width>
-                        <height>50</height>
-                        <font>font13</font>
-                        <label>$INFO[ListItem.Label]</label>
-                        <textcolor>green</textcolor>
-                    </control>
-                    <control type="image">
-                        <left>560</left>
-                        <top>15</top>
-                        <width>25</width>
-                        <height>25</height>
-                        <texture>check.png</texture>
-                        <visible>String.IsEqual(ListItem.Property(checked),true)</visible>
-                    </control>
-                    <control type="image">
-                        <left>560</left>
-                        <top>15</top>
-                        <width>25</width>
-                        <height>25</height>
-                        <texture>no.png</texture>
-                        <visible>String.IsEqual(ListItem.Property(checked),false)</visible>
-                    </control>
-                    <control type="label">
-                        <left>600</left>
-                        <top>5</top>
-                        <width>200</width>
-                        <height>40</height>
-                        <font>font13</font>
-                        <label>$INFO[ListItem.Property(action_label)]</label>
-                        <align>center</align>
-                        <textcolor>green</textcolor>
-                    </control>
-                </focusedlayout>
-            </control>
+      <control type="image">
+        <width>960</width>
+        <height>1080</height>
+        <texture>dialog-back.png</texture>
+        <colordiffuse>AAFFFFFF</colordiffuse>
+      </control>
 
-            <!-- Bottone "Aggiungi Tutti" -->
-            <control type="button" id="500">
-                <label>Aggiungi Tutti</label>
-                <left>40</left>
-                <top>810</top>
-                <width>430</width>
-                <height>60</height>
-                <font>font13</font>
-                <align>center</align>
-                <textcolor>white</textcolor>
-                <texturenofocus border="0,0,0,0">button-nofocus.png</texturenofocus>
-                <texturefocus border="0,0,0,0">button-focus.png</texturefocus>
-            </control>
+      <control type="label" id="101">
+        <left>40</left>
+        <top>40</top>
+        <width>880</width>
+        <height>40</height>
+        <font>font30</font>
+        <label></label>
+        <textcolor>white</textcolor>
+      </control>
 
-            <!-- Bottone "Apri Gestore File" -->
-            <control type="button" id="202">
-                <label>Apri Gestore File</label>
-                <left>490</left>
-                <top>810</top>
-                <width>430</width>
-                <height>60</height>
-                <font>font13</font>
-                <align>center</align>
-                <textcolor>white</textcolor>
-                <texturenofocus border="0,0,0,0">button-nofocus.png</texturenofocus>
-                <texturefocus border="0,0,0,0">button-focus.png</texturefocus>
-                <colordiffuse>FFFFFFFF</colordiffuse>
-                <onclick>RunScript(special://home/addons/plugin.program.addonrepoinstaller/resources/lib/filemanager.py)</onclick>
-            </control>
-            
-            <!-- Nuovo bottone "Rimuovi tutti" -->
-            <control type="button" id="700">
-                <label>Rimuovi Tutti</label>
-                <left>40</left>
-                <top>880</top>
-                <width>880</width>
-                <height>60</height>
-                <font>font13</font>
-                <align>center</align>
-                <textcolor>white</textcolor>
-                <texturenofocus border="0,0,0,0">button-nofocus.png</texturenofocus>
-                <texturefocus border="0,0,0,0">button-focus.png</texturefocus>
-                <colordiffuse>FFFFFFFF</colordiffuse>
-            </control>
-        </control>
+      <control type="image">
+        <left>40</left>
+        <top>85</top>
+        <width>880</width>
+        <height>1</height>
+        <texture colordiffuse="66FFFFFF">white.png</texture>
+      </control>
 
-        <!-- Colonna destra -->
-        <control type="group" id="10002">
-            <left>960</left>
-            <top>0</top>
-            <width>960</width>
-            <height>1080</height>
+      <control type="textbox" id="200">
+        <left>40</left>
+        <top>90</top>
+        <width>880</width>
+        <height>400</height>
+        <font>font13</font>
+        <textcolor>white</textcolor>
+      </control>
 
-            <control type="image">
-                <width>960</width>
-                <height>1080</height>
-                <texture>dialog-back.png</texture>
-                <colordiffuse>AAFFFFFF</colordiffuse>
-            </control>
+      <control type="image">
+        <left>40</left>
+        <top>495</top>
+        <width>880</width>
+        <height>1</height>
+        <texture colordiffuse="66FFFFFF">white.png</texture>
+      </control>
 
-            <control type="label" id="101">
-                <left>40</left>
-                <top>40</top>
-                <width>880</width>
-                <height>40</height>
-                <font>font30</font>
-                <label></label>
-                <textcolor>white</textcolor>
-            </control>
+      <control type="label" id="102">
+        <left>40</left>
+        <top>560</top>
+        <width>880</width>
+        <height>40</height>
+        <label>Canale di supporto Telegram</label>
+        <font>font13</font>
+        <textcolor>white</textcolor>
+        <align>center</align>
+      </control>
 
-            <!-- Riga orizzontale sotto il titolo destro -->
-            <control type="image">
-                <left>40</left>
-                <top>85</top>
-                <width>880</width>
-                <height>1</height>
-                <texture colordiffuse="66FFFFFF">white.png</texture>
-            </control>
+      <control type="image" id="300">
+        <left>380</left>
+        <top>610</top>
+        <width>200</width>
+        <height>200</height>
+      </control>
 
-            <control type="textbox" id="200">
-                <left>40</left>
-                <top>90</top>
-                <width>880</width>
-                <height>400</height>
-                <font>font13</font>
-                <textcolor>white</textcolor>
-            </control>
+      <control type="label" id="103">
+        <left>40</left>
+        <top>830</top>
+        <width>880</width>
+        <height>30</height>
+        <font>font13</font>
+        <label>https://t.me/esempio</label>
+        <textcolor>white</textcolor>
+        <align>center</align>
+      </control>
+    </control>
 
-            <!-- Riga orizzontale sotto la descrizione -->
-            <control type="image">
-                <left>40</left>
-                <top>495</top>
-                <width>880</width>
-                <height>1</height>
-                <texture colordiffuse="66FFFFFF">white.png</texture>
-            </control>
-
-            <!-- Etichetta e QR code senza sfondo -->
-            <control type="label" id="102">
-                <left>40</left>
-                <top>560</top>
-                <width>880</width>
-                <height>40</height>
-                <label>Canale di supporto Telegram</label>
-                <font>font13</font>
-                <textcolor>white</textcolor>
-                <align>center</align>
-            </control>
-
-            <control type="image" id="300">
-                <left>380</left>
-                <top>610</top>
-                <width>200</width>
-                <height>200</height>
-            </control>
-
-            <control type="label" id="103">
-                <left>40</left>
-                <top>830</top>
-                <width>880</width>
-                <height>30</height>
-                <font>font13</font>
-                <label>https://t.me/esempio</label>
-                <textcolor>white</textcolor>
-                <align>center</align>
-            </control>
-        </control>
-
-        <!-- Riga verticale centrale -->
-        <control type="image">
-            <left>960</left>
-            <top>0</top>
-            <width>1</width>
-            <height>1080</height>
-            <texture colordiffuse="33FFFFFF">white.png</texture>
-        </control>
-    </controls>
+    <!-- Riga verticale centrale -->
+    <control type="image">
+      <left>960</left>
+      <top>0</top>
+      <width>1</width>
+      <height>1080</height>
+      <texture colordiffuse="33FFFFFF">white.png</texture>
+    </control>
+  </controls>
 </window>
