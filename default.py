@@ -256,6 +256,8 @@ class RepoManagerGUI(xbmcgui.WindowXML):
             self.install_all()
         elif controlId == 202:
             xbmc.executebuiltin("ActivateWindow(filemanager)")
+        elif controlId == 203:
+            xbmc.executebuiltin('InstallFromZip()')
         elif controlId == 600:
             self.refresh_list()
         elif controlId == 700:  # Nuovo pulsante "Rimuovi tutti"
