@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="plugin.program.addonrepoinstaller"
+       name="Addon & Repo Installer"
+       version="1.0.0"
+       provider-name="Aandroide">
+
+    <requires>
+        <import addon="xbmc.python" version="3.0.0" />
+        <import addon="script.module.pyqrcode" version="1.2.1+matrix.1" />
+    </requires>
+
+    <!-- script principale -->
+    <extension point="xbmc.python.script" library="default.py" />
+
+    <!-- Service per l’auto-update -->
+    <extension point="xbmc.service" library="service.py" start="startup" />
+
+    <extension point="xbmc.addon.metadata">
+        <summary lang="it">Installer di repository/addon tramite fonti</summary>
+        <description lang="it">
+            Questo addon consente di installare automaticamente repository e addon
+            leggendo da un file addons.json (locale o remoto su GitHub). Supporta pulsanti,
+            QR code Telegram e aggiornamenti dinamici. Utile per utenti esperti e principianti.
+        </description>
+        <disclaimer lang="it">Usa l’addon sotto la tua responsabilità. Nessun contenuto viene distribuito direttamente.</disclaimer>
+        <license>MIT</license>
+        <platform>all</platform>
+        <source>https://github.com/aandroide/lista</source>
+        <assets>
+            <icon>icon.png</icon>
+            <fanart>resources/skins/default/media/background.png</fanart>
+        </assets>
+    </extension>
+</addon>

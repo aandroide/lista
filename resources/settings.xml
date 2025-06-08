@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+<category label="Set_Url_addons.json">
+  <!-- Inserisci le credenziali GitHub: username, repository e branch -->
+  <setting id="github_user" type="text" label="GitHub Username"
+           default="aandroide"
+           longlabel="Inserisci il nome utente GitHub che ospita il file addons.json." />
+  <setting id="github_repo" type="text" label="GitHub Repository"
+           default="lista"
+           longlabel="Inserisci il nome del repository (cartella) su GitHub che contiene addons.json." />
+  <setting id="github_branch" type="text" label="GitHub Branch"
+           default="master"
+           longlabel="Inserisci il nome del branch GitHub da cui scaricare addons.json." />
+</category>
+
+<category label="Informazioni - Wiki">
+    <setting type="lsep" label=" " />
+    <setting type="label" label="[B]Scopo dell'Addon[/B]" />
+    <setting type="label" label="Visualizza e installa repository da un file JSON GitHub." />
+    <setting type="label" label="Aggiunge automaticamente URL a sources.xml" />
+    <setting type="label" label="Mostra QR Code per canale Telegram associato" />
+    <setting type="lsep" label=" " />
+
+    <setting type="label" label="[B]Configurazione GitHub[/B]" />
+    <setting type="label" label="URL JSON dinamico via username/repo/branch." />
+    <setting type="label" label="Esempio: raw.githubusercontent.com/user/repo/branch/addons.json" />
+    <setting type="lsep" label=" " />
+
+    <setting type="label" label="[B]Funzionalità[/B]" />
+    <setting type="label" label="- Pulsante Aggiungi per ogni repo" />
+    <setting type="label" label="- Aggiungi Tutti" />
+    <setting type="label" label="- QR code Telegram" />
+    <setting type="label" label="- Icona check se già presente" />
+    <setting type="lsep" label=" " />
+
+    <setting type="label" label="[B]Fallback Locale[/B]" />
+    <setting type="label" label="Se GitHub non è raggiungibile, usa il file locale in /resources/" />
+</category>
+
+</settings>
+
