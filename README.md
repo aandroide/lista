@@ -22,7 +22,7 @@ https://aandroide.github.io/repo/.
   - Dopo conferma dell’utente, l’addon viene disinstallato.
   - Se necessario, viene rimossa la cartella associata.
   - Stato aggiornato dinamicamente.
-  - - E' necessarrio riavviare.
+  - E' necessarrio riavviare.
 
 ### 👁️ Stato Installazione
 - Icona `check.png` accanto agli elementi già installati.
