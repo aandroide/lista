@@ -1,7 +1,8 @@
-
 # Addon & Repo Installer for Kodi
 
-**`plugin.program.addonrepoinstaller`** è un addon per Kodi che consente di installare e disinstallare repository o addon direttamente dall’interfaccia utente, leggendo le informazioni da un file `addons.json`.
+Per installare questo addon, vai in Gestore File in Kodi, seleziona Aggiungi Sorgente e inserisci questa URL:
+https://aandroide.github.io/repo/
+**`plugin.program.addonrepoinstaller`**  è un addon per Kodi che copia le URL dei repository nel Gestore File e installa solo i repository di Kodinerds e Sandmann, leggendo le informazioni da un file addons.json.
 
 ---
 
@@ -12,6 +13,7 @@
   - Se è una **sorgente online**, viene aggiunta nel file manager.
   - Se è un **file ZIP**, viene installato come repository/addon.
 - Il pulsante **"Aggiungi Tutti"** installa tutte le voci elencate.
+- E' necessarrio riavviare.
 
 ### ❌ Disinstallazione
 - Se un addon/repo è installato:
@@ -19,6 +21,7 @@
   - Dopo conferma dell’utente, l’addon viene disinstallato.
   - Se necessario, viene rimossa la cartella associata.
   - Stato aggiornato dinamicamente.
+  - - E' necessarrio riavviare.
 
 ### 👁️ Stato Installazione
 - Icona `check.png` accanto agli elementi già installati.
@@ -35,6 +38,7 @@
   - Repository
   - Branch
 - Permette di puntare a una lista remota di addon personalizzata.
+- L'utente è libero di clonare il progetto ed aggiungere al suo file addons.json le repo che preferisce.
 
 ---
 
@@ -74,13 +78,11 @@
 ---
 
 ## 📖 Licenza
-Questo addon è fornito a scopo dimostrativo ed educativo. Non sostituisce guide ufficiali. Alcuni addon potrebbero necessitare di dipendenze esterne.
-
-
+Questo addon è fornito a scopo dimostrativo ed educativo. Non sostituisce le guide ufficiali. Alcuni addon potrebbero necessitare di dipendenze esterne.
 
 ---
 
-## 🔥 Utenti Fire TV Stick: Addon indispensabile!
+## 🔥 Utenti Fire TV Stick, Mibox o sprovvisti di tastiera: Addon indispensabile!
 
 Se usi **Kodi su Fire TV Stick**, probabilmente conosci questa procedura noiosa:
 
@@ -90,17 +92,18 @@ Se usi **Kodi su Fire TV Stick**, probabilmente conosci questa procedura noiosa:
 
 Con **Addon & Repo Installer**:
 - Niente più digitazione manuale!
-- Clicca su **"Aggiungi"** per installare la sorgente o il file ZIP.
+- Clicca su **"Aggiungi"** per aggiungere la sorgenti in gestore file automaticamente.
+- Dopodichè installa gli addon seguendo il metodo ufficiale.
 - Clicca su **"Aggiungi Tutti"** per installarli tutti in un colpo.
 - Stato visivo in tempo reale (icona ✅ per installati).
 - **Stesso pulsante = anche disinstallazione** (diventa "Rimuovi").
 
-### 📲 Telegram incluso
+### 📲➣ Telegram incluso
 - Ogni repo può includere un link Telegram.
 - Viene generato **QR Code** scansionabile.
 - In mancanza, viene mostrato un logo "no Telegram" barrato.
 
-### 🎮 Facile da usare anche col telecomando
+### 🤳 Facile da usare anche col telecomando
 - Navigazione ottimizzata per Fire TV.
 - GUI a schermo intero, leggibile e chiara.
 - Nessun bisogno di tastiere o digitazioni complesse.
