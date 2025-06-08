@@ -3,7 +3,7 @@
 Per installare questo addon, vai in Gestore File in Kodi, seleziona Aggiungi Sorgente e inserisci questa URL:
 https://aandroide.github.io/repo/.
 
-**`plugin.program.addonrepoinstaller`**  è un addon per Kodi che copia le URL dei repository nel Gestore File e installa solo i repository di Kodinerds e Sandmann, leggendo le informazioni da un file addons.json.
+**`plugin.program.addonrepoinstaller`**  è un addon per Kodi che copia le URL in Gestore File e installa solo i repository di Kodinerds e Sandmann, leggendo le informazioni da un file addons.json.
 
 ---
 
