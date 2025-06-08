@@ -109,7 +109,6 @@ def safe_download_file(url, destination):
         log(f"Errore download file: {str(e)}", xbmc.LOGERROR)
         return False
 
-
 # Recupera sorgenti esistenti da sources.xml
 def get_existing_sources():
     path = xbmcvfs.translatePath("special://profile/sources.xml")
