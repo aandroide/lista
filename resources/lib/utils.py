@@ -1,6 +1,3 @@
-import xbmcaddon
-import xml.etree.ElementTree as ET
-ADDON_ID = xbmcaddon.Addon().getAddonInfo('id')
 # -*- coding: utf-8 -*-
 import xbmc
 import xbmcgui
@@ -11,15 +8,15 @@ import os
 import urllib.request
 import zipfile
 import shutil
+import xml.etree.ElementTree as ET
+ADDON_ID = xbmcaddon.Addon().getAddonInfo('id')
 
 # Costanti addon
 ADDON = xbmcaddon.Addon()
 ADDON_PATH = xbmcvfs.translatePath(ADDON.getAddonInfo('path'))
 LOCAL_JSON = os.path.join(ADDON_PATH, 'resources', 'addons.json')
 
-# ─────────────────────────────────────────────────────────────
 # Carica la lista sorgenti da remoto (GitHub) o da file locale
-# ─────────────────────────────────────────────────────────────
 def get_sources():
     github_user   = ADDON.getSetting("github_user").strip() or "aandroide"
     github_repo   = ADDON.getSetting("github_repo").strip() or "lista"
@@ -45,9 +42,7 @@ def get_sources():
             xbmc.log(f"[Utils] Errore JSON locale: {e}", xbmc.LOGERROR)
     return sources
 
-# ─────────────────────────────────────────────────────────────
 # Abilita un addon installato
-# ─────────────────────────────────────────────────────────────
 def set_addon_enabled(addon_id):
     request = {
         "jsonrpc": "2.0",
@@ -58,9 +53,7 @@ def set_addon_enabled(addon_id):
     response = xbmc.executeJSONRPC(json.dumps(request))
     xbmc.log(f"[Utils] Abilitazione {addon_id}: {response}", xbmc.LOGINFO)
 
-# ─────────────────────────────────────────────────────────────
 # Scarica ed estrae un file ZIP, poi abilita l'addon contenuto
-# ─────────────────────────────────────────────────────────────
 def download_and_extract_zip(zip_url, addon_name=""):
     try:
         zip_name = os.path.basename(zip_url)
@@ -95,16 +88,11 @@ def download_and_extract_zip(zip_url, addon_name=""):
         xbmcgui.Dialog().notification(addon_name or "Addon", f"Errore: {e}", xbmcgui.NOTIFICATION_ERROR, 3000)
         return False
 
-
-# ─────────────────────────────────────────────────────────────
 # Logger generico con prefisso addon
-# ─────────────────────────────────────────────────────────────
 def log(message, level=xbmc.LOGINFO):
     xbmc.log(f"[{ADDON_ID}] {message}", level)
 
-# ─────────────────────────────────────────────────────────────
 # Download sicuro con file temporaneo
-# ─────────────────────────────────────────────────────────────
 def safe_download_file(url, destination):
     try:
         with urllib.request.urlopen(url, timeout=15) as response:
@@ -121,9 +109,8 @@ def safe_download_file(url, destination):
         log(f"Errore download file: {str(e)}", xbmc.LOGERROR)
         return False
 
-# ─────────────────────────────────────────────────────────────
+
 # Recupera sorgenti esistenti da sources.xml
-# ─────────────────────────────────────────────────────────────
 def get_existing_sources():
     path = xbmcvfs.translatePath("special://profile/sources.xml")
     if not os.path.exists(path):
@@ -141,9 +128,7 @@ def get_existing_sources():
         log(f"Errore lettura sources.xml: {str(e)}", xbmc.LOGERROR)
         return []
 
-# ─────────────────────────────────────────────────────────────
 # Rimuove fisicamente un repository dalla cartella addons/
-# ─────────────────────────────────────────────────────────────
 def remove_physical_repo(repo_id):
     addons_path = xbmcvfs.translatePath("special://home/addons/")
     repo_path = os.path.join(addons_path, repo_id)
