@@ -13,6 +13,10 @@
            longlabel="Inserisci il nome del branch GitHub da cui scaricare addons.json." />
 </category>
 
+<category label="Canali_XXX">
+<setting id="ShowAdult" type="bool" label="Show Adult Content" default="false"/>
+</category>  
+
 <category label="Informazioni - Wiki">
     <setting type="lsep" label=" " />
     <setting type="label" label="[B]Scopo dell'Addon[/B]" />
