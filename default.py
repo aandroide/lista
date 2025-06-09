@@ -171,21 +171,33 @@ class RepoManagerGUI(xbmcgui.WindowXML):
             'link': None,
             'qr_image': None
         }
+
     def onInit(self):
         self.initialize_controls()
         self.load_data()
         self.populate_list()
         self.setFocusId(100)
+
     def initialize_controls(self):
-        self.controls['list'] = self.getControl(100)
-        self.controls['title'] = self.getControl(101)
-        self.controls['description'] = self.getControl(200)
-        self.controls['link'] = self.getControl(103)
-        self.controls['qr_image'] = self.getControl(300)
+        self.controls['list']       = self.getControl(100)
+        self.controls['title']      = self.getControl(101)
+        self.controls['description']= self.getControl(200)
+        self.controls['link']       = self.getControl(103)
+        self.controls['qr_image']   = self.getControl(300)
+
     def load_data(self):
-        self.sources = get_sources()
+        # Carica tutte le sorgenti dal JSON
+        sources = get_sources()
+        # Controlla lo setting ShowAdult: restituisce "true" o "false"
+        show_adult = ADDON.getSetting("ShowAdult") == "true"
+        if not show_adult:
+            sources = [
+                s for s in sources
+                if s.get("name") != "Dobbelina repo (Cumination)"
+            ]
+        self.sources = sources
         self.existing_urls = get_existing_sources()
-        log(f"Caricate {len(self.sources)} sorgenti")
+        log(f"Caricate {len(self.sources)} sorgenti (ShowAdult={show_adult})")
     def is_repo_installed(self, repo):
         name = repo.get("name", "").lower()
         url = repo.get("url", "")
