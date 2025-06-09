@@ -106,6 +106,7 @@ def add_source_to_xml(repo):
     if not url:
         log(f"Sorgente '{name}' senza URL", xbmc.LOGWARNING)
         return False
+    
     if os.path.exists(sources_path):
         try:
             tree = ET.parse(sources_path)
@@ -116,19 +117,43 @@ def add_source_to_xml(repo):
     else:
         root = ET.Element("sources")
         tree = ET.ElementTree(root)
+    
     files_node = root.find("files")
     if files_node is None:
         files_node = ET.SubElement(root, "files")
+    
     for source in files_node.findall("source"):
         path_elem = source.find('path')
         if path_elem is not None and path_elem.text == url:
             return False
+    
     source = ET.SubElement(files_node, "source")
     ET.SubElement(source, "name").text = name
     ET.SubElement(source, "path", pathversion="1").text = url
     ET.SubElement(source, "allowsharing").text = "true"
+    
+    # Formatta l'XML con indentazione
+    def indent(elem, level=0):
+        spacer = "  "  # 2 spazi per livello
+        indent_prefix = "\n" + level * spacer
+        if len(elem):
+            if not elem.text or not elem.text.strip():
+                elem.text = indent_prefix + spacer
+            for child in elem:
+                indent(child, level + 1)
+            if not child.tail or not child.tail.strip():
+                child.tail = indent_prefix
+        else:
+            if level and (not elem.tail or not elem.tail.strip()):
+                elem.tail = indent_prefix
+    
+    indent(root)  # Applica l'indentazione all'intero XML
+    
     try:
-        tree.write(sources_path, encoding='utf-8', xml_declaration=True)
+        # Scrive l'XML formattato
+        xml_str = ET.tostring(root, encoding='utf-8', xml_declaration=True)
+        with open(sources_path, 'wb') as f:
+            f.write(xml_str)
         return True
     except Exception as e:
         log(f"Errore scrittura sources.xml: {str(e)}", xbmc.LOGERROR)
