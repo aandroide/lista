@@ -9,7 +9,7 @@ https://aandroide.github.io/repo/.
 
 ## 📌 Funzionalità Principali
 
-### ✅ Scrive le url in gestore file o installa i repositori
+### ✅ Scrive le url in gestore file o installa i repository
 - Pulsante **"Aggiungi"** per ogni voce del file `addons.json`:
   - Se è una **sorgente online**, viene aggiunta nel file manager.
   - Dopo aver riavviato, si procede con l'installazzione ufficiale **Installa da file ZIP**,.
