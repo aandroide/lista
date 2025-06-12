@@ -9,10 +9,10 @@ https://aandroide.github.io/repo/.
 
 ## 📌 Funzionalità Principali
 
-### ✅ Installazione Sorgenti o ZIP
+### ✅ Scrive le url in gestore file o installa i repositori
 - Pulsante **"Aggiungi"** per ogni voce del file `addons.json`:
   - Se è una **sorgente online**, viene aggiunta nel file manager.
-  - Se è un **file ZIP**, viene installato come repository/addon.
+  - Dopo aver riavviato, si procede con l'installazzione ufficiale **Installa da file ZIP**,.
 - Il pulsante **"Aggiungi Tutti"** installa tutte le voci elencate.
 - E' necessarrio riavviare.
 
@@ -40,6 +40,7 @@ https://aandroide.github.io/repo/.
   - Branch
 - Permette di puntare a una lista remota di addon personalizzata.
 - L'utente è libero di clonare il progetto ed aggiungere al suo file addons.json le repo che preferisce.
+- Canali_XXX, Switch disabilitato di default per le repo con contenuto XXX, abilitandolo verra aggiunto alla lista per poi aggiungerla.
 
 ---
 
@@ -58,8 +59,8 @@ https://aandroide.github.io/repo/.
 
 ## 🖼️ Interfaccia Grafica
 - GUI personalizzata fullscreen (`RepoManagerGUI.xml`)
-- Colonna sinistra: lista addon
-- Colonna destra: descrizione, QR, pulsanti
+- Colonna sinistra: lista addon, pulsanti.
+- Colonna destra: descrizione, QR.
 
 ---
 
@@ -95,8 +96,8 @@ Con **Addon & Repo Installer**:
 - Niente più digitazione manuale!
 - Clicca su **"Aggiungi"** per aggiungere la sorgenti in gestore file automaticamente.
 - Dopodichè installa gli addon seguendo il metodo ufficiale.
-- Clicca su **"Aggiungi Tutti"** per installarli tutti in un colpo.
-- Stato visivo in tempo reale (icona ✅ per installati).
+- Clicca su **"Aggiungi Tutti"** per aggiungerli tutti in un colpo.
+- Stato visivo in tempo reale (icona ✅ per aggiunti).
 - **Stesso pulsante = anche disinstallazione** (diventa "Rimuovi").
 
 ### 📲➣ Telegram incluso
