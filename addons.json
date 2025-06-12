@@ -65,6 +65,12 @@
       "description": "Repo per l'addon Cumination: contenuti per adulti da numerosi siti.",
       "url": "https://dobbelina.github.io",
       "telegram": ""
-     }
+     },
+    {
+      "name": "Elementum repo",
+      "description": "Repo per l'addon Elementum: streaming P2P di contenuti video.",
+      "url": "https://github.com/ElementumOrg/repository.elementumorg/releases/",
+      "telegram": ""
+    }
   ]
 }
