@@ -60,11 +60,17 @@
       "url": "https://jurialmunkey.github.io/repository.jurialmunkey/",
       "telegram": ""
     },
-	{
+    {
       "name": "Dobbelina repo (Cumination)",
       "description": "Repo per l'addon Cumination: contenuti per adulti da numerosi siti.",
       "url": "https://dobbelina.github.io",
       "telegram": ""
-	}  
+     },
+     {
+      "name": "Elementum repo",
+      "description": "Repo per l'addon Elementum: streaming P2P di contenuti video.",
+      "url": "https://github.com/elgatito/plugin.video.elementum/releases/latest",
+      "telegram": ""
+    }
   ]
 }
