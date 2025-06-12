@@ -13,7 +13,7 @@ https://aandroide.github.io/repo/.
 - Pulsante **"Aggiungi"** per ogni voce del file `addons.json`:
   - Se è una **sorgente online**, viene aggiunta nel file manager.
   - Dopo aver riavviato, si procede con l'installazzione ufficiale **Installa da file ZIP**,.
-- Il pulsante **"Aggiungi Tutti"** installa tutte le voci elencate.
+- Il pulsante **"Aggiungi Tutti"** aggiunge tutte le voci elencate.
 - E' necessarrio riavviare.
 
 ### ❌ Disinstallazione
