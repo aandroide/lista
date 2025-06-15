@@ -9,12 +9,14 @@ import urllib.request
 import zipfile
 import shutil
 import xml.etree.ElementTree as ET
+
 ADDON_ID = xbmcaddon.Addon().getAddonInfo('id')
 
 # Costanti addon
 ADDON = xbmcaddon.Addon()
 ADDON_PATH = xbmcvfs.translatePath(ADDON.getAddonInfo('path'))
 LOCAL_JSON = os.path.join(ADDON_PATH, 'resources', 'addons.json')
+NO_TELEGRAM_IMAGE = os.path.join(ADDON_PATH, "resources", "skins", "default", "media", "no-telegram.png")
 
 # Carica la lista sorgenti da remoto (GitHub) o da file locale
 def get_sources():
