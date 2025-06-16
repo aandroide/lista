@@ -18,15 +18,21 @@ ADDON_PATH = xbmcvfs.translatePath(ADDON.getAddonInfo('path'))
 LOCAL_JSON = os.path.join(ADDON_PATH, 'resources', 'addons.json')
 NO_TELEGRAM_IMAGE = os.path.join(ADDON_PATH, "resources", "skins", "default", "media", "no-telegram.png")
 
-# Carica la lista sorgenti da remoto (GitHub) o da file locale
-def get_sources():
+def get_github_config():
     github_user   = ADDON.getSetting("github_user").strip() or "aandroide"
     github_repo   = ADDON.getSetting("github_repo").strip() or "lista"
     github_branch = ADDON.getSetting("github_branch").strip() or "master"
     remote_url = f"https://raw.githubusercontent.com/{github_user}/{github_repo}/{github_branch}/resources/addons.json"
+    return github_user, github_repo, github_branch, remote_url
+
+
+# Carica la lista sorgenti da remoto (GitHub) o da file locale
+def get_sources():
+    _, _, _, remote_url = get_github_config()
 
     xbmc.log(f"[Utils] Download addons.json: {remote_url}", xbmc.LOGINFO)
     sources = []
+
     try:
         with urllib.request.urlopen(remote_url, timeout=10) as response:
             if response.getcode() == 200:
@@ -42,6 +48,7 @@ def get_sources():
                 sources = data.get("sources", [])
         except Exception as e:
             xbmc.log(f"[Utils] Errore JSON locale: {e}", xbmc.LOGERROR)
+
     return sources
 
 # Abilita un addon installato
