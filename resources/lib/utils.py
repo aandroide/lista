@@ -23,7 +23,7 @@ def get_sources():
     github_user   = ADDON.getSetting("github_user").strip() or "aandroide"
     github_repo   = ADDON.getSetting("github_repo").strip() or "lista"
     github_branch = ADDON.getSetting("github_branch").strip() or "master"
-    remote_url = f"https://raw.githubusercontent.com/{github_user}/{github_repo}/{github_branch}/addons.json"
+    remote_url = f"https://raw.githubusercontent.com/{github_user}/{github_repo}/{github_branch}/resources/addons.json"
 
     xbmc.log(f"[Utils] Download addons.json: {remote_url}", xbmc.LOGINFO)
     sources = []
