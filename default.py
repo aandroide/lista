@@ -27,6 +27,7 @@ NO_TELEGRAM_IMAGE = os.path.join(ADDON_PATH, "resources", "skins", "default", "m
 KODINERDS_REPO_ID = "repository.kodinerds"
 SANDMANN_REPO_ID = "repository.sandmann79.plugins"
 ELEMENTUM_REPO_ID = "repository.elementumorg"
+LOCAL_JSON = os.path.join(ADDON_PATH, 'resources', 'addons.json')
 
 def show_intro_message_once():
     try:
@@ -39,37 +40,42 @@ def show_intro_message_once():
     except Exception as e:
         log(f"Errore nel messaggio introduttivo: {str(e)}", xbmc.LOGERROR)
 
-def get_sources():
-    _, _, _, remote_url = get_github_config()
-
-    xbmc.log(f"[Utils] Download addons.json: {remote_url}", xbmc.LOGINFO)
-    sources = []
-
+def check_for_updates():
+    remote_url = get_github_config()
     try:
-        with urllib.request.urlopen(remote_url, timeout=10) as response:
-            if response.getcode() == 200:
-                data = json.loads(response.read().decode('utf-8'))
-                sources = data.get("sources", [])
+        if os.path.exists(LOCAL_JSON) and not os.path.exists(BACKUP_JSON):
+            shutil.copy(LOCAL_JSON, BACKUP_JSON)
+        req = urllib.request.Request(REMOTE_URL, method='HEAD')
+        response = urllib.request.urlopen(req, timeout=10)
+        current_etag = response.headers.get('ETag', '').strip('"')
+        last_etag = ""
+        if os.path.exists(LAST_ETAG_FILE):
+            with open(LAST_ETAG_FILE, 'r') as f:
+                last_etag = f.read().strip()
+        if not last_etag:
+            if safe_download_file(REMOTE_URL, LOCAL_JSON):
+                with open(LAST_ETAG_FILE, 'w') as f:
+                    f.write(current_etag)
+                return True
+            return False
+        if current_etag and current_etag != last_etag:
+            if safe_download_file(REMOTE_URL, LOCAL_JSON):
+                with open(LAST_ETAG_FILE, 'w') as f:
+                    f.write(current_etag)
+                xbmcgui.Dialog().notification(
+                    ADDON_NAME,
+                    "Nuovi repository disponibili!",
+                    ADDON_ICON,
+                    5000
+                )
+                return True
+        return False
     except Exception as e:
-        xbmc.log(f"[Utils] Errore JSON remoto: {e}", xbmc.LOGERROR)
-
-    if not sources and xbmcvfs.exists(LOCAL_JSON):
-        try:
-            with open(LOCAL_JSON, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                sources = data.get("sources", [])
-        except Exception as e:
-            xbmc.log(f"[Utils] Errore JSON locale: {e}", xbmc.LOGERROR)
-
-    return sources
+        log(f"Controllo aggiornamenti fallito: {traceback.format_exc()}", xbmc.LOGERROR)
+        return False
 
 # Esegui inizializzazioni
 show_intro_message_once()
-LOCAL_JSON = os.path.join(ADDON_PATH, 'resources', 'addons.json')
-github_user = ADDON.getSetting("github_user").strip() or "aandroide"
-github_repo = ADDON.getSetting("github_repo").strip() or "lista"
-github_branch = ADDON.getSetting("github_branch").strip() or "master"
-REMOTE_URL = f"https://raw.githubusercontent.com/{github_user}/{github_repo}/{github_branch}/resources/addons.json"
 
 # Controlla aggiornamenti all'avvio
 if check_for_updates():

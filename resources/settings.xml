@@ -41,5 +41,8 @@
     <setting type="label" label="Se GitHub non è raggiungibile, usa il file locale in /resources/" />
 </category>
 
+<category label="Debug">
+    <setting id="enable_logging" type="bool" label="Abilita log" default="false" />
+</category>
 </settings>
 
