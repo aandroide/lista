@@ -45,7 +45,7 @@ def check_for_updates():
     try:
         if os.path.exists(LOCAL_JSON) and not os.path.exists(BACKUP_JSON):
             shutil.copy(LOCAL_JSON, BACKUP_JSON)
-        req = urllib.request.Request(REMOTE_URL, method='HEAD')
+        req = urllib.request.Request(remote_url, method='HEAD')
         response = urllib.request.urlopen(req, timeout=10)
         current_etag = response.headers.get('ETag', '').strip('"')
         last_etag = ""
@@ -53,13 +53,13 @@ def check_for_updates():
             with open(LAST_ETAG_FILE, 'r') as f:
                 last_etag = f.read().strip()
         if not last_etag:
-            if safe_download_file(REMOTE_URL, LOCAL_JSON):
+            if safe_download_file(remote_url, LOCAL_JSON):
                 with open(LAST_ETAG_FILE, 'w') as f:
                     f.write(current_etag)
                 return True
             return False
         if current_etag and current_etag != last_etag:
-            if safe_download_file(REMOTE_URL, LOCAL_JSON):
+            if safe_download_file(remote_url, LOCAL_JSON):
                 with open(LAST_ETAG_FILE, 'w') as f:
                     f.write(current_etag)
                 xbmcgui.Dialog().notification(
