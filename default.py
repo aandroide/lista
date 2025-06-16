@@ -27,6 +27,7 @@ NO_TELEGRAM_IMAGE = os.path.join(ADDON_PATH, "resources", "skins", "default", "m
 KODINERDS_REPO_ID = "repository.kodinerds"
 SANDMANN_REPO_ID = "repository.sandmann79.plugins"
 ELEMENTUM_REPO_ID = "repository.elementumorg"
+LOCAL_JSON = os.path.join(ADDON_PATH, 'resources', 'addons.json')
 
 def show_intro_message_once():
     try:
@@ -74,11 +75,6 @@ def check_for_updates():
 
 # Esegui inizializzazioni
 show_intro_message_once()
-LOCAL_JSON = os.path.join(ADDON_PATH, 'resources', 'addons.json')
-github_user = ADDON.getSetting("github_user").strip() or "aandroide"
-github_repo = ADDON.getSetting("github_repo").strip() or "lista"
-github_branch = ADDON.getSetting("github_branch").strip() or "master"
-REMOTE_URL = f"https://raw.githubusercontent.com/{github_user}/{github_repo}/{github_branch}/resources/addons.json"
 
 # Controlla aggiornamenti all'avvio
 if check_for_updates():
