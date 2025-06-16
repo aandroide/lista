@@ -38,7 +38,7 @@ def log(message, level="INFO"):
             }
             if isinstance(level, str):
                 level = level_map.get(level.upper(), xbmc.LOGINFO)
-            xbmc.log(f"[{ADDON_NAME}] {message}", level)
+            xbmc.log(f"[Addon & Repo Installer] {message}", level)
     except Exception:
         pass
 
