@@ -71,6 +71,12 @@
       "description": "Repo per l'addon Elementum: streaming P2P di contenuti video.",
       "url": "https://github.com/ElementumOrg/repository.elementumorg/releases/",
       "telegram": ""
+    },
+    {
+      "name": "Simo repo",
+      "description": "Repo per l'addon di pulizia OptiKlean per kodi 2025 ",
+      "url": " https://www.digitalking.it/kodi-repo/ ",
+      "telegram": "https://t.me/ItalianSpaghettiGeeks"
     }
   ]
 }
