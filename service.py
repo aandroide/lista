@@ -8,8 +8,9 @@ import urllib.request
 import json
 import os
 import xbmcgui
-import zipfile
+import shutil
 from io import BytesIO
+import zipfile
 
 # Impostazioni addon
 ADDON = xbmcaddon.Addon()
@@ -32,10 +33,8 @@ GITHUB_BRANCH = ADDON.getSetting('github_branch') or 'main'
 def read_last_commit():
     try:
         if xbmcvfs.exists(LAST_COMMIT_FILE):
-            f = xbmcvfs.File(LAST_COMMIT_FILE, 'r')
-            sha = f.read().strip()
-            f.close()
-            return sha
+            with xbmcvfs.File(LAST_COMMIT_FILE, 'r') as f:
+                return f.read().strip()
     except Exception as e:
         xbmc.log(f"[ServiceSelfUpdate] Errore lettura ultimo commit: {e}", xbmc.LOGERROR)
     return ''
@@ -43,50 +42,87 @@ def read_last_commit():
 
 def write_last_commit(sha):
     try:
-        f = xbmcvfs.File(LAST_COMMIT_FILE, 'w')
-        f.write(sha)
-        f.close()
+        with xbmcvfs.File(LAST_COMMIT_FILE, 'w') as f:
+            f.write(sha)
     except Exception as e:
         xbmc.log(f"[ServiceSelfUpdate] Errore scrittura ultimo commit: {e}", xbmc.LOGERROR)
 
 
-def update_from_zip(zip_url):
+def update_full(zip_url):
     """
-    Scarica lo zip dal repository e lo estrae direttamente nella cartella dell'addon,
-    sovrascrivendo i file esistenti e mantenendo la struttura interna senza la cartella radice.
+    Scarica l'intero repository come zip e lo estrae sovrascrivendo la cartella addon.
     """
     try:
-        # Scarica in memoria
         resp = urllib.request.urlopen(zip_url, timeout=20)
         data = resp.read()
         zf = zipfile.ZipFile(BytesIO(data))
+        addon_real_path = xbmcvfs.translatePath(ADDON_PATH)
+        # Rimuovi esistente
+        if os.path.isdir(addon_real_path):
+            shutil.rmtree(addon_real_path)
+        # Estrai
         for member in zf.infolist():
-            # Salta la cartella radice del zip
             parts = member.filename.split('/', 1)
             if len(parts) < 2:
                 continue
             relpath = parts[1]
-            target_path = os.path.join(ADDON_PATH, relpath)
-
+            target = os.path.join(ADDON_PATH, relpath)
             if member.is_dir():
-                xbmcvfs.mkdirs(xbmcvfs.translatePath(target_path))
+                xbmcvfs.mkdirs(xbmcvfs.translatePath(target))
             else:
-                # Crea cartella se non esiste
-                dirpath = os.path.dirname(target_path)
-                if not xbmcvfs.exists(xbmcvfs.translatePath(dirpath)):
-                    xbmcvfs.mkdirs(xbmcvfs.translatePath(dirpath))
-                # Estrai file
-                with zf.open(member) as src:
-                    data_file = src.read()
-                    f = xbmcvfs.File(target_path, 'w')
-                    f.write(data_file)
-                    f.close()
+                dirpath = os.path.dirname(target)
+                xbmcvfs.mkdirs(xbmcvfs.translatePath(dirpath))
+                with zf.open(member) as src, xbmcvfs.File(target, 'w') as dst:
+                    dst.write(src.read())
         zf.close()
-        xbmc.log(f"[ServiceSelfUpdate] Estrazione ZIP completata in {ADDON_PATH}", xbmc.LOGINFO)
+        xbmc.log(f"[ServiceSelfUpdate] Full update completato in {ADDON_PATH}", xbmc.LOGINFO)
+        return True
     except Exception as e:
-        xbmc.log(f"[ServiceSelfUpdate] Errore in update_from_zip: {e}", xbmc.LOGERROR)
-        return False
-    return True
+        xbmc.log(f"[ServiceSelfUpdate] Errore in update_full: {e}", xbmc.LOGERROR)
+    return False
+
+
+def update_incremental(last_sha, remote_sha):
+    api_compare = f"https://api.github.com/repos/{GITHUB_USER}/{GITHUB_REPO}/compare/{last_sha}...{remote_sha}"
+    xbmc.log(f"[ServiceSelfUpdate] Confronto commit {last_sha}..{remote_sha}", xbmc.LOGINFO)
+    try:
+        with urllib.request.urlopen(api_compare, timeout=10) as resp:
+            if resp.getcode() != 200:
+                xbmc.log(f"[ServiceSelfUpdate] Compare API code: {resp.getcode()}", xbmc.LOGERROR)
+                return False
+            data = json.loads(resp.read().decode('utf-8'))
+            for file_info in data.get('files', []):
+                path = file_info.get('filename')
+                status = file_info.get('status')
+                local = os.path.join(ADDON_PATH, path)
+                real = xbmcvfs.translatePath(local)
+
+                if status == 'removed':
+                    if os.path.exists(real):
+                        os.remove(real)
+                        # Pulisci dir vuote
+                        dirp = os.path.dirname(real)
+                        while dirp.startswith(xbmcvfs.translatePath(ADDON_PATH)) and not os.listdir(dirp):
+                            os.rmdir(dirp)
+                            dirp = os.path.dirname(dirp)
+                    xbmc.log(f"[ServiceSelfUpdate] Rimosso: {path}", xbmc.LOGINFO)
+
+                elif status in ('added', 'modified'):
+                    raw_url = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/{GITHUB_BRANCH}/{path}"
+                    try:
+                        with urllib.request.urlopen(raw_url, timeout=20) as r:
+                            content = r.read()
+                            dp = os.path.dirname(local)
+                            xbmcvfs.mkdirs(xbmcvfs.translatePath(dp))
+                            with xbmcvfs.File(local, 'w') as f:
+                                f.write(content)
+                        xbmc.log(f"[ServiceSelfUpdate] Scaricato: {path}", xbmc.LOGINFO)
+                    except Exception as e:
+                        xbmc.log(f"[ServiceSelfUpdate] Errore download {path}: {e}", xbmc.LOGERROR)
+            return True
+    except Exception as e:
+        xbmc.log(f"[ServiceSelfUpdate] Eccezione confronto: {e}", xbmc.LOGERROR)
+    return False
 
 
 def check_self_update():
@@ -96,7 +132,6 @@ def check_self_update():
 
     api_url = f"https://api.github.com/repos/{GITHUB_USER}/{GITHUB_REPO}/commits/{GITHUB_BRANCH}"
     xbmc.log(f"[ServiceSelfUpdate] Controllo commit su {GITHUB_USER}/{GITHUB_REPO}@{GITHUB_BRANCH}", xbmc.LOGINFO)
-
     try:
         with urllib.request.urlopen(api_url, timeout=10) as resp:
             if resp.getcode() != 200:
@@ -104,15 +139,16 @@ def check_self_update():
                 return
             data = json.loads(resp.read().decode('utf-8'))
             remote_sha = data.get('sha', '')
-            if not remote_sha:
-                xbmc.log("[ServiceSelfUpdate] SHA mancante nella risposta API", xbmc.LOGERROR)
-                return
-
             last_sha = read_last_commit()
-            if remote_sha != last_sha:
+            if remote_sha and remote_sha != last_sha:
                 xbmc.log(f"[ServiceSelfUpdate] Nuovo commit {remote_sha}", xbmc.LOGINFO)
-                zip_url = f"https://github.com/{GITHUB_USER}/{GITHUB_REPO}/archive/{GITHUB_BRANCH}.zip"
-                if update_from_zip(zip_url):
+                if last_sha:
+                    success = update_incremental(last_sha, remote_sha)
+                else:
+                    zip_url = f"https://github.com/{GITHUB_USER}/{GITHUB_REPO}/archive/{GITHUB_BRANCH}.zip"
+                    success = update_full(zip_url)
+
+                if success:
                     write_last_commit(remote_sha)
                     xbmcgui.Dialog().notification(
                         ADDON_NAME,
@@ -122,7 +158,6 @@ def check_self_update():
                     )
             else:
                 xbmc.log("[ServiceSelfUpdate] Commit già aggiornato, nessuna azione", xbmc.LOGINFO)
-
     except Exception as e:
         xbmc.log(f"[ServiceSelfUpdate] Eccezione controllo aggiornamento: {e}", xbmc.LOGERROR)
 
