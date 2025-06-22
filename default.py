@@ -28,6 +28,7 @@ from resources.lib.elementum_repo_installer import download_elementum_repo
 from resources.lib.repo_installer import install_from_html
 from resources.lib.update_checker import check_for_updates
 from resources.lib.first_run import show_intro_message_once
+from resources.lib.qr_generator import generate_qr_code
 
 # Addon constants
 ADDON        = xbmcaddon.Addon()
@@ -79,18 +80,7 @@ def is_any_sandmann_repo_installed():
 
 def is_elementum_repo_installed():
     return is_repo_installed_by_id(ELEMENTUM_REPO_ID)
-
-def generate_qr_code(url, name="qr"):
-    try:
-        qr = pyqrcode.create(url)
-        tmp = xbmcvfs.translatePath("special://temp")
-        path = os.path.join(tmp, f"{name}_qr.png")
-        qr.png(path, scale=6)
-        return path
-    except Exception as e:
-        log(f"Errore generazione QR: {e}", xbmc.LOGERROR)
-        return NO_TELEGRAM_IMG
-
+    
 def add_source_to_xml(repo):
     sources_path = xbmcvfs.translatePath("special://profile/sources.xml")
     name = repo.get("name","Sconosciuto")
@@ -250,10 +240,16 @@ class RepoManagerGUI(xbmcgui.WindowXML):
         r = self.sources[self.selected_index]
         self.controls['title'].setLabel(r.get('name',''))
         self.controls['description'].setText(r.get('description',''))
-        tg = r.get('telegram','')
-        self.controls['link'].setLabel(tg or "Nessun canale Telegram disponibile")
-        img = generate_qr_code(tg, r['name']) if tg else NO_TELEGRAM_IMG
-        self.controls['qr'].setImage(img)
+    
+        telegram_url = r.get('telegram', '')
+        self.controls['link'].setLabel(telegram_url or "Nessun canale Telegram disponibile")
+    
+    # Genera QR code solo se c'è un URL Telegram
+        if telegram_url:
+            qr_path = generate_qr_code(telegram_url, r['name'])
+            self.controls['qr'].setImage(qr_path)
+        else:
+            self.controls['qr'].setImage(NO_TELEGRAM_IMG)
 
     def onAction(self, action):
         aid = action.getId()
