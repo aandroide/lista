@@ -73,10 +73,7 @@ def is_repo_installed_by_id(repo_id):
     return xbmc.getCondVisibility(f"System.HasAddon({repo_id})") == 1
 
 def is_any_sandmann_repo_installed():
-    return any(
-        is_repo_installed_by_id(r)
-        for r in [SANDMANN_REPO_ID, "repository.sandmann79", "repository.sandmann79s"]
-    )
+    return is_repo_installed_by_id(SANDMANN_REPO_ID)
 
 def is_elementum_repo_installed():
     return is_repo_installed_by_id(ELEMENTUM_REPO_ID)
@@ -244,7 +241,7 @@ class RepoManagerGUI(xbmcgui.WindowXML):
         telegram_url = r.get('telegram', '')
         self.controls['link'].setLabel(telegram_url or "Nessun canale Telegram disponibile")
     
-    # Genera QR code solo se c'è un URL Telegram
+        # Genera QR code solo se c'è un URL Telegram
         if telegram_url:
             qr_path = generate_qr_code(telegram_url, r['name'])
             self.controls['qr'].setImage(qr_path)
@@ -444,15 +441,12 @@ class RepoManagerGUI(xbmcgui.WindowXML):
 
         removed = False
         try:
-            if any(k in lower for k in ("kodinerds","sandmann","elementum")):
-                # rimuovi folder fisici
-                if "kodinerds" in lower:
-                    removed |= remove_physical_repo(KODINERDS_REPO_ID)
-                if "sandmann" in lower:
-                    for rid in (SANDMANN_REPO_ID,"repository.sandmann79","repository.sandmann79s"):
-                        removed |= remove_physical_repo(rid)
-                if "elementum" in lower:
-                    removed |= remove_physical_repo(ELEMENTUM_REPO_ID)
+            if "kodinerds" in lower:
+                removed |= remove_physical_repo(KODINERDS_REPO_ID)
+            elif "sandmann" in lower:
+                removed |= remove_physical_repo(SANDMANN_REPO_ID)
+            elif "elementum" in lower:
+                removed |= remove_physical_repo(ELEMENTUM_REPO_ID)
             else:
                 removed = remove_source_from_xml(repo)
         except Exception as e:
