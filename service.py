@@ -24,6 +24,9 @@ if not xbmcvfs.exists(PROFILE_PATH):
 LAST_COMMIT_FILE = os.path.join(PROFILE_PATH, 'last_commit.txt')
 ADDON_PATH = xbmcvfs.translatePath(os.path.join('special://home/addons', ADDON_ID))
 
+# File da preservare anche se non presenti su GitHub
+IGNORE_FILES = {'.firstrun'}
+
 # Lettura impostazioni GitHub
 GITHUB_USER = ADDON.getSetting('github_user')
 GITHUB_REPO = ADDON.getSetting('github_repo')
@@ -67,13 +70,17 @@ def get_remote_file_list():
 
 def sync_orphan_files(remote_paths):
     """
-    Cancella i file locali che non sono più presenti nel repository remoto.
+    Cancella i file locali che non sono più presenti nel repository remoto,
+    eccetto quelli in IGNORE_FILES.
     """
     addon_real = xbmcvfs.translatePath(ADDON_PATH)
     for root, dirs, files in os.walk(addon_real, topdown=False):
         for name in files:
             fullpath = os.path.join(root, name)
             relpath = os.path.relpath(fullpath, addon_real).replace('\\', '/')
+            # Salta file da ignorare
+            if relpath in IGNORE_FILES:
+                continue
             if relpath not in remote_paths:
                 try:
                     os.remove(fullpath)
