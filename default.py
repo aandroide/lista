@@ -27,6 +27,7 @@ from resources.lib.sandmann_repo_installer import download_sandmann_repo
 from resources.lib.elementum_repo_installer import download_elementum_repo
 from resources.lib.repo_installer import install_from_html
 from resources.lib.update_checker import check_for_updates
+from resources.lib.first_run import show_intro_message_once
 
 # Addon constants
 ADDON        = xbmcaddon.Addon()
@@ -64,22 +65,8 @@ if check_for_updates(
 else:
     xbmc.log(f"{ADDON_NAME}: Nessun aggiornamento disponibile", xbmc.LOGINFO)
 
-def show_intro_message_once():
-    try:
-        if not os.path.exists(FIRST_RUN_FILE):
-            with open(FIRST_RUN_FILE, 'w') as f:
-                f.write("shown")
-            xbmcgui.Dialog().ok(
-                ADDON_NAME,
-                "Prima di procedere ti consigliamo di unirti ai canali Telegram ufficiali.\n\n"
-                "Questo addon non sostituisce le guide ufficiali. Alcuni addon potrebbero necessitare dipendenze aggiuntive."
-            )
-    except Exception as e:
-        log(f"Errore nel messaggio introduttivo: {e}", xbmc.LOGERROR)
-
-# Inizializzazioni all'avvio
-
-show_intro_message_once()
+# messaggio alla prima esecuzione dell'addon e solo una volta.    
+show_intro_message_once(ADDON_NAME, FIRST_RUN_FILE)
 
 def is_repo_installed_by_id(repo_id):
     return xbmc.getCondVisibility(f"System.HasAddon({repo_id})") == 1
