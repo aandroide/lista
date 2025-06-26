@@ -79,6 +79,12 @@
       "telegram": "https://t.me/ItalianSpaghettiGeeks"
     },
     {
+      "name": "Rock Clean",
+      "description": "addon per la pulizia su Kodi",
+      "url": "http://www.rockodi.com",
+      "telegram": ""
+    },
+    {
       "name": "Youtube",
       "description": "Guarda i tuoi contenuti YouTube preferiti su Kodi",
       "url": "https://github.com/anxdpanic/plugin.video.youtube/releases",
