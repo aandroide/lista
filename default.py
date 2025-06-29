@@ -370,17 +370,25 @@ class RepoManagerGUI(xbmcgui.WindowXML):
         self.controls['title'].setLabel(repo.get("name", ""))
         self.controls['description'].setText(repo.get("description", ""))
         
-        # Modifica speciale per YouTube
+        # MODIFICA PRINCIPALE: CAMBIAMO SOLO L'ETICHETTA PER YOUTUBE
         if repo.get("name", "").lower() == "youtube":
+            # Cambiamo l'etichetta sopra il QR code
             self.controls['link'].setLabel("Istruzioni per la creazione delle chiavi API YouTube")
-            qr_path = generate_qr_code(repo.get("telegram", ""), repo["name"])
         else:
             telegram_url = repo.get("telegram", "")
             if telegram_url:
                 self.controls['link'].setLabel(telegram_url)
-                qr_path = generate_qr_code(telegram_url, repo["name"])
             else:
                 self.controls['link'].setLabel("Nessun canale Telegram disponibile")
+        
+        # Generazione QR code (invariata)
+        if repo.get("name", "").lower() == "youtube":
+            qr_path = generate_qr_code("https://github.com/anxdpanic/plugin.video.youtube/issues/1095", repo["name"])
+        else:
+            telegram_url = repo.get("telegram", "")
+            if telegram_url:
+                qr_path = generate_qr_code(telegram_url, repo["name"])
+            else:
                 qr_path = NO_TELEGRAM_IMAGE
         
         self.controls['qr_image'].setImage(qr_path)
