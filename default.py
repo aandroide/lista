@@ -208,8 +208,9 @@ class RepoManagerGUI(xbmcgui.WindowXML):
         self.controls = {
             'list': None,
             'title': None,
-            'description': None,
+            'static_label': None,  # Nuovo controllo per l'etichetta statica
             'link': None,
+            'description': None,
             'qr_image': None
         }
 
@@ -222,8 +223,9 @@ class RepoManagerGUI(xbmcgui.WindowXML):
     def initialize_controls(self):
         self.controls['list']       = self.getControl(100)
         self.controls['title']      = self.getControl(101)
-        self.controls['description']= self.getControl(200)
+        self.controls['static_label'] = self.getControl(102)  # Etichetta statica sopra il QR
         self.controls['link']       = self.getControl(103)
+        self.controls['description']= self.getControl(200)
         self.controls['qr_image']   = self.getControl(300)
 
     def load_data(self):
@@ -370,25 +372,30 @@ class RepoManagerGUI(xbmcgui.WindowXML):
         self.controls['title'].setLabel(repo.get("name", ""))
         self.controls['description'].setText(repo.get("description", ""))
         
-        # MODIFICA PRINCIPALE: CAMBIAMO SOLO L'ETICHETTA PER YOUTUBE
+        # MODIFICA PRINCIPALE: RECUPERO DINAMICO DEL LINK DA addons.json
         if repo.get("name", "").lower() == "youtube":
-            # Cambiamo l'etichetta sopra il QR code
-            self.controls['link'].setLabel("Istruzioni per la creazione delle chiavi API YouTube")
+            # Cambia l'etichetta statica
+            self.controls['static_label'].setLabel("Istruzioni per le chiavi API")
+            
+            # Recupera il link dalle impostazioni JSON
+            instructions_url = repo.get("telegram", "")
+            if instructions_url:
+                self.controls['link'].setLabel("Clicca per le istruzioni")
+                qr_path = generate_qr_code(instructions_url, repo["name"])
+            else:
+                self.controls['link'].setLabel("Nessun link disponibile")
+                qr_path = NO_TELEGRAM_IMAGE
         else:
+            # Ripristina l'etichetta predefinita
+            self.controls['static_label'].setLabel("Canale di supporto Telegram")
+            
+            # Recupera il link Telegram da JSON
             telegram_url = repo.get("telegram", "")
             if telegram_url:
                 self.controls['link'].setLabel(telegram_url)
-            else:
-                self.controls['link'].setLabel("Nessun canale Telegram disponibile")
-        
-        # Generazione QR code (invariata)
-        if repo.get("name", "").lower() == "youtube":
-            qr_path = generate_qr_code("https://github.com/anxdpanic/plugin.video.youtube/issues/1095", repo["name"])
-        else:
-            telegram_url = repo.get("telegram", "")
-            if telegram_url:
                 qr_path = generate_qr_code(telegram_url, repo["name"])
             else:
+                self.controls['link'].setLabel("Nessun canale Telegram disponibile")
                 qr_path = NO_TELEGRAM_IMAGE
         
         self.controls['qr_image'].setImage(qr_path)
@@ -424,6 +431,31 @@ class RepoManagerGUI(xbmcgui.WindowXML):
             self.refresh_list()
         elif controlId == 700:  # Nuovo pulsante "Rimuovi tutti"
             self.uninstall_all()
+        elif controlId == 103:  # Click sul link
+            self.open_link()
+
+    def open_link(self):
+        """Apre il link nel browser quando l'utente clicca sull'etichetta"""
+        if not self.sources or self.selected_index >= len(self.sources):
+            return
+        
+        repo = self.sources[self.selected_index]
+        url = ""
+        
+        if repo.get("name", "").lower() == "youtube":
+            url = repo.get("telegram", "")
+        else:
+            url = repo.get("telegram", "")
+        
+        if url:
+            xbmc.executebuiltin(f"ActivateWindow(10025,{url})")
+        else:
+            xbmcgui.Dialog().notification(
+                ADDON_NAME,
+                "Nessun link disponibile",
+                ADDON_ICON,
+                3000
+            )
 
     def refresh_list(self):
         if check_for_updates():
