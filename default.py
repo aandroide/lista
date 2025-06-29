@@ -369,15 +369,20 @@ class RepoManagerGUI(xbmcgui.WindowXML):
         repo = self.sources[self.selected_index]
         self.controls['title'].setLabel(repo.get("name", ""))
         self.controls['description'].setText(repo.get("description", ""))
-        telegram_url = repo.get("telegram", "")
-        if telegram_url:
-            self.controls['link'].setLabel(telegram_url)
+        
+        # Modifica speciale per YouTube
+        if repo.get("name", "").lower() == "youtube":
+            self.controls['link'].setLabel("Istruzioni per la creazione delle chiavi API YouTube")
+            qr_path = generate_qr_code(repo.get("telegram", ""), repo["name"])
         else:
-            self.controls['link'].setLabel("Nessun canale Telegram disponibile")
-        if telegram_url:
-            qr_path = generate_qr_code(telegram_url, repo["name"])
-        else:
-            qr_path = NO_TELEGRAM_IMAGE
+            telegram_url = repo.get("telegram", "")
+            if telegram_url:
+                self.controls['link'].setLabel(telegram_url)
+                qr_path = generate_qr_code(telegram_url, repo["name"])
+            else:
+                self.controls['link'].setLabel("Nessun canale Telegram disponibile")
+                qr_path = NO_TELEGRAM_IMAGE
+        
         self.controls['qr_image'].setImage(qr_path)
 
     def onAction(self, action):
@@ -559,6 +564,10 @@ class RepoManagerGUI(xbmcgui.WindowXML):
                 added = is_repo_installed_by_id(SANDMANN_REPO_ID)
             elif "elementum" in name:
                 added = download_elementum_repo()
+            elif "youtube" in name:
+                # Caso speciale per YouTube - usa l'installer dedicato
+                from resources.lib.youtube_repo_installer import download_latest_youtube_zip
+                added = download_latest_youtube_zip(repo.get("url", ""))
             else:
                 added = add_source_to_xml(repo)
         except Exception as e:
