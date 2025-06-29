@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Service Self-Update per Kodi addon: sincronizza tutti i file presenti su GitHub con quelli locali
+Service Self-Update per Kodi addon: sincronizza i file remoti
+- Esegue sync solo se c'è un nuovo commit
 - Scarica file mancanti o modificati
-- Rimuove file locali non più presenti (orfani)
+- Rimuove file locali non più remoti
+- Notifica solo se ci sono aggiornamenti, mostrando il commit
 """
 
 import xbmc
@@ -18,21 +20,59 @@ import shutil
 ADDON      = xbmcaddon.Addon()
 ADDON_ID   = ADDON.getAddonInfo('id')
 ADDON_NAME = ADDON.getAddonInfo('name')
+ICON_PATH  = xbmcvfs.translatePath(
+    os.path.join('special://home/addons', ADDON_ID, ADDON.getAddonInfo('icon'))
+)
 
 # Percorsi
 PROFILE_PATH     = xbmcvfs.translatePath(ADDON.getAddonInfo('profile'))
 if not os.path.exists(PROFILE_PATH):
     os.makedirs(PROFILE_PATH, exist_ok=True)
-LAST_COMMIT_FILE = os.path.join(PROFILE_PATH, 'last_commit.txt')  # opzionale
+LAST_COMMIT_FILE = os.path.join(PROFILE_PATH, 'last_commit.txt')
 ADDON_PATH       = xbmcvfs.translatePath(os.path.join('special://home/addons', ADDON_ID))
 
 # File da preservare anche se non presenti su GitHub
 IGNORE_FILES = {'.firstrun'}
 
-# Lettura impostazioni GitHub
+# Impostazioni GitHub
 github_user   = ADDON.getSetting('github_user')
 github_repo   = ADDON.getSetting('github_repo')
 github_branch = ADDON.getSetting('github_branch') or 'main'
+
+
+def read_last_commit():
+    try:
+        if os.path.exists(LAST_COMMIT_FILE):
+            with open(LAST_COMMIT_FILE, 'r') as f:
+                return f.read().strip()
+    except Exception as e:
+        xbmc.log(f"[ServiceSelfUpdate] Errore lettura ultimo commit: {e}", xbmc.LOGERROR)
+    return ''
+
+
+def write_last_commit(sha):
+    try:
+        with open(LAST_COMMIT_FILE, 'w') as f:
+            f.write(sha)
+    except Exception as e:
+        xbmc.log(f"[ServiceSelfUpdate] Errore scrittura ultimo commit: {e}", xbmc.LOGERROR)
+
+
+def get_remote_commit():
+    """
+    Restituisce lo SHA dell'ultimo commit sul branch remoto.
+    """
+    api_url = f"https://api.github.com/repos/{github_user}/{github_repo}/commits/{github_branch}"
+    try:
+        with urllib.request.urlopen(api_url, timeout=10) as resp:
+            if resp.getcode() != 200:
+                xbmc.log(f"[ServiceSelfUpdate] Commit API code: {resp.getcode()}", xbmc.LOGERROR)
+                return ''
+            data = json.loads(resp.read().decode('utf-8'))
+            return data.get('sha', '')
+    except Exception as e:
+        xbmc.log(f"[ServiceSelfUpdate] Errore fetch commit: {e}", xbmc.LOGERROR)
+    return ''
 
 
 def get_remote_file_list():
@@ -54,8 +94,7 @@ def get_remote_file_list():
 
 def sync_orphan_files(remote_paths):
     """
-    Rimuove i file locali che non sono più presenti nel repository remoto,
-    eccetto quelli in IGNORE_FILES.
+    Rimuove i file locali che non sono più presenti nel repository remoto.
     """
     addon_real = ADDON_PATH
     for root, dirs, files in os.walk(addon_real, topdown=False):
@@ -77,14 +116,12 @@ def sync_orphan_files(remote_paths):
                 pass
 
 
-def sync_all():
+def sync_all(remote_paths):
     """
-    Sincronizza tutti i file remoti con quelli locali.
-    Scarica file mancanti o modificati e rimuove orfani.
+    Sincronizza tutti i file remoti con quelli locali:
+    - Scarica file mancanti o modificati
+    - Poi rimuove gli orfani
     """
-    remote_paths = get_remote_file_list()
-    if not remote_paths:
-        return
     base_url   = f"https://raw.githubusercontent.com/{github_user}/{github_repo}/{github_branch}"
     addon_real = ADDON_PATH
     for rel in remote_paths:
@@ -96,7 +133,7 @@ def sync_all():
         except Exception as e:
             xbmc.log(f"[ServiceSelfUpdate] Errore fetch {rel}: {e}", xbmc.LOGERROR)
             continue
-        # determina se scrivere: mancante o modificato
+        # verifica esistenza e differenze
         write = True
         if os.path.exists(phys):
             try:
@@ -110,29 +147,41 @@ def sync_all():
             try:
                 with open(phys, 'wb') as f:
                     f.write(content)
-                xbmc.log(f"[ServiceSelfUpdate] Aggiornato/Scaricato: {rel}", xbmc.LOGINFO)
+                xbmc.log(f"[ServiceSelfUpdate] Aggiornato: {rel}", xbmc.LOGINFO)
             except Exception as e:
                 xbmc.log(f"[ServiceSelfUpdate] Errore scrittura {rel}: {e}", xbmc.LOGERROR)
-    # rimuove file locali non più remoti
+    # rimuovi file non più remoti
     sync_orphan_files(remote_paths)
 
 
 def check_self_update():
     """
-    Avvia sincronizzazione completa all'avvio.
+    Controlla se c'è un nuovo commit e, in tal caso, sincronizza tutti i file.
+    Notifica solo se ci sono aggiornamenti, mostrando il commit abbreviato e il logo.
     """
     if not github_user or not github_repo:
         xbmc.log("[ServiceSelfUpdate] Parametri GitHub mancanti", xbmc.LOGERROR)
         return
-    xbmc.log("[ServiceSelfUpdate] Avvio sincronizzazione completa", xbmc.LOGINFO)
+    remote_sha = get_remote_commit()
+    if not remote_sha:
+        return
+    last_sha = read_last_commit()
+    if remote_sha == last_sha:
+        xbmc.log("[ServiceSelfUpdate] Nessun aggiornamento disponibile", xbmc.LOGINFO)
+        return
+    xbmc.log(f"[ServiceSelfUpdate] Nuovo commit {remote_sha}", xbmc.LOGINFO)
+    # sincronizza
     try:
-        sync_all()
-        xbmcgui.Dialog().notification(
-            ADDON_NAME,
-            "Addon sincronizzato",
-            xbmcgui.NOTIFICATION_INFO,
-            5000
-        )
+        remote_paths = get_remote_file_list()
+        if remote_paths:
+            sync_all(remote_paths)
+            write_last_commit(remote_sha)
+            xbmcgui.Dialog().notification(
+                ADDON_NAME,
+                f"Addon aggiornato ({remote_sha[:7]})",
+                ICON_PATH,
+                5000
+            )
     except Exception as e:
         xbmc.log(f"[ServiceSelfUpdate] Errore sincronizzazione: {e}", xbmc.LOGERROR)
 
