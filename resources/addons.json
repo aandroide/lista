@@ -83,6 +83,12 @@
       "description": "addon per la pulizia su Kodi",
       "url": "http://www.rockodi.com",
       "telegram": ""
+    },
+    {
+      "name": "Youtube",
+      "description": "Guarda i tuoi contenuti YouTube preferiti su Kodi",
+      "url": "https://api.github.com/repos/anxdpanic/plugin.video.youtube/releases/latest",
+      "telegram": "https://github.com/anxdpanic/plugin.video.youtube/issues/1095"
     }
   ]
 }
