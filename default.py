@@ -372,31 +372,34 @@ class RepoManagerGUI(xbmcgui.WindowXML):
         self.controls['title'].setLabel(repo.get("name", ""))
         self.controls['description'].setText(repo.get("description", ""))
         
-        # MODIFICA PRINCIPALE: RECUPERO DINAMICO DEL LINK DA addons.json
+        # Recupera il link dalle impostazioni JSON
+        link_url = repo.get("telegram", "")
+        
+        # MODIFICA PRINCIPALE: MOSTRIAMO SEMPRE IL LINK EFFETTIVO
         if repo.get("name", "").lower() == "youtube":
             # Cambia l'etichetta statica
-            self.controls['static_label'].setLabel("Istruzioni per le chiavi API")
+            self.controls['static_label'].setLabel("Istruzioni per la creazione delle chiavi API Youtube")
             
-            # Recupera il link dalle impostazioni JSON
-            instructions_url = repo.get("telegram", "")
-            if instructions_url:
-                self.controls['link'].setLabel("Clicca per le istruzioni")
-                qr_path = generate_qr_code(instructions_url, repo["name"])
+            # Mostra il link effettivo
+            if link_url:
+                self.controls['link'].setLabel(link_url)
             else:
                 self.controls['link'].setLabel("Nessun link disponibile")
-                qr_path = NO_TELEGRAM_IMAGE
         else:
             # Ripristina l'etichetta predefinita
             self.controls['static_label'].setLabel("Canale di supporto Telegram")
             
-            # Recupera il link Telegram da JSON
-            telegram_url = repo.get("telegram", "")
-            if telegram_url:
-                self.controls['link'].setLabel(telegram_url)
-                qr_path = generate_qr_code(telegram_url, repo["name"])
+            # Mostra il link effettivo
+            if link_url:
+                self.controls['link'].setLabel(link_url)
             else:
                 self.controls['link'].setLabel("Nessun canale Telegram disponibile")
-                qr_path = NO_TELEGRAM_IMAGE
+        
+        # Genera il QR code dall'URL
+        if link_url:
+            qr_path = generate_qr_code(link_url, repo["name"])
+        else:
+            qr_path = NO_TELEGRAM_IMAGE
         
         self.controls['qr_image'].setImage(qr_path)
 
@@ -440,12 +443,7 @@ class RepoManagerGUI(xbmcgui.WindowXML):
             return
         
         repo = self.sources[self.selected_index]
-        url = ""
-        
-        if repo.get("name", "").lower() == "youtube":
-            url = repo.get("telegram", "")
-        else:
-            url = repo.get("telegram", "")
+        url = repo.get("telegram", "")
         
         if url:
             xbmc.executebuiltin(f"ActivateWindow(10025,{url})")
