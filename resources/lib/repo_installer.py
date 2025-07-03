@@ -1,15 +1,122 @@
 # resources/lib/repo_installer.py
-# Modulo generico per installazione da GitHub Release o da HTML
+# Modulo completo per gestione repository
+# -*- coding: utf-8 -*-
 
 import json
 import re
 import urllib.request
-from urllib.parse import urljoin
 import xbmc
 import xbmcgui
+import traceback
+from urllib.parse import urljoin
 
-from resources.lib.utils import get_source_url, download_and_extract_zip, log
+from resources.lib.utils import (
+    get_source_url, 
+    download_and_extract_zip, 
+    log,
+    get_existing_sources,
+    remove_physical_repo
+)
+from resources.lib.sources_manager import add_source_to_xml, remove_source_from_xml
 
+# ID repository speciali
+KODINERDS_REPO_ID = "repository.kodinerds"
+SANDMANN_REPO_ID = "repository.sandmann79.plugins"
+ELEMENTUM_REPO_ID = "repository.elementumorg"
+
+def is_repo_installed(repo):
+    """Controlla se un repository è installato"""
+    name = repo.get("name", "").lower()
+    url = repo.get("url", "")
+    
+    if "kodinerds" in name:
+        return xbmc.getCondVisibility(f"System.HasAddon({KODINERDS_REPO_ID})") == 1
+    if "sandmann" in name:
+        return xbmc.getCondVisibility(f"System.HasAddon({SANDMANN_REPO_ID})") == 1
+    if "elementum" in name:
+        return xbmc.getCondVisibility(f"System.HasAddon({ELEMENTUM_REPO_ID})") == 1
+    
+    return url in get_existing_sources()
+
+def install_repo(repo):
+    """Installa un singolo repository"""
+    name = repo['name']
+    lower = name.lower()
+    
+    try:
+        if "kodinerds" in lower:
+            from resources.lib.kodinerds_downloader import download_latest_kodinerds_zip
+            return download_latest_kodinerds_zip()
+        elif "sandmann" in lower:
+            from resources.lib.sandmann_repo_installer import download_sandmann_repo
+            return download_sandmann_repo()
+        elif "elementum" in lower:
+            from resources.lib.elementum_repo_installer import download_elementum_repo
+            return download_elementum_repo()
+        else:
+            return add_source_to_xml(repo)
+    except Exception as e:
+        log(f"Errore install {name}: {traceback.format_exc()}", xbmc.LOGERROR)
+        return False
+
+def uninstall_repo(repo):
+    """Disinstalla un singolo repository"""
+    name = repo['name']
+    lower = name.lower()
+    
+    try:
+        if "kodinerds" in lower:
+            return remove_physical_repo(KODINERDS_REPO_ID)
+        elif "sandmann" in lower:
+            return remove_physical_repo(SANDMANN_REPO_ID)
+        elif "elementum" in lower:
+            return remove_physical_repo(ELEMENTUM_REPO_ID)
+        else:
+            return remove_source_from_xml(repo)
+    except Exception as e:
+        log(f"Errore uninstall {name}: {traceback.format_exc()}", xbmc.LOGERROR)
+        return False
+
+def install_all_repos(sources, progress_callback=None):
+    """Installa tutti i repository"""
+    added = skipped = 0
+    total = len(sources)
+    
+    for i, repo in enumerate(sources):
+        if progress_callback and progress_callback(i, total, repo['name']):
+            break
+            
+        if is_repo_installed(repo):
+            skipped += 1
+            continue
+            
+        if install_repo(repo):
+            added += 1
+        else:
+            skipped += 1
+            
+    return added, skipped
+
+def uninstall_all_repos(sources, progress_callback=None):
+    """Disinstalla tutti i repository"""
+    removed = errors = 0
+    total = len(sources)
+    
+    for i, repo in enumerate(sources):
+        if progress_callback and progress_callback(i, total, repo['name']):
+            break
+            
+        if not is_repo_installed(repo):
+            continue
+            
+        if uninstall_repo(repo):
+            removed += 1
+        else:
+            errors += 1
+            
+    return removed, errors
+
+# Funzioni per installazione generica da GitHub/HTML
 def install_github_release(source_predicate, repo_path_extractor, asset_filter, addon_name):
     """
     - source_predicate(s: dict) -> bool
