@@ -4,30 +4,24 @@ import xbmcgui
 import xbmcaddon
 import xbmcvfs
 import os
-import json
-import urllib.request
-import pyqrcode
-import traceback
-import shutil
-import time
 import re
 
 from resources.lib.utils import (
     get_sources_list, 
-    log, 
-    safe_download_file, 
-    get_existing_sources, 
-    remove_physical_repo
+    log
 )
 
-from resources.lib.kodinerds_downloader import download_latest_kodinerds_zip
-from resources.lib.sandmann_repo_installer import download_sandmann_repo
-from resources.lib.elementum_repo_installer import download_elementum_repo
-from resources.lib.repo_installer import install_from_html
+from resources.lib.repo_installer import (
+    install_repo,
+    uninstall_repo,
+    install_all_repos,
+    uninstall_all_repos,
+    is_repo_installed
+)
+
 from resources.lib.update_checker import check_for_updates
 from resources.lib.first_run import show_intro_message_once
 from resources.lib.qr_generator import generate_qr_code
-from resources.lib.sources_manager import add_source_to_xml, remove_source_from_xml
 
 # Addon constants
 ADDON        = xbmcaddon.Addon()
@@ -47,12 +41,7 @@ FIRST_RUN_FILE  = os.path.join(ADDON_PATH, ".firstrun")
 LAST_ETAG_FILE  = os.path.join(ADDON_PATH, ".last_etag")
 NO_TELEGRAM_IMG = os.path.join(ADDON_PATH, "resources", "skins", "default", "media", "no-telegram.png")
 
-# ID esatti dei repository
-KODINERDS_REPO_ID  = "repository.kodinerds"
-SANDMANN_REPO_ID   = "repository.sandmann79.plugins"
-ELEMENTUM_REPO_ID  = "repository.elementumorg"
-
-# chiamo la funzione aggiornamenti
+# Controlla aggiornamenti all'avvio
 if check_for_updates(
     ADDON_NAME=ADDON_NAME,
     ADDON_ICON=ADDON_ICON,
@@ -61,36 +50,28 @@ if check_for_updates(
     LAST_ETAG_FILE=LAST_ETAG_FILE,
     REMOTE_URL=REMOTE_URL
 ):
-    xbmc.log(f"{ADDON_NAME}: File addons.json aggiornato", xbmc.LOGINFO)
+    log(f"{ADDON_NAME}: File addons.json aggiornato")
 else:
-    xbmc.log(f"{ADDON_NAME}: Nessun aggiornamento disponibile", xbmc.LOGINFO)
+    log(f"{ADDON_NAME}: Nessun aggiornamento disponibile")
 
-# messaggio alla prima esecuzione dell'addon e solo una volta.    
+# Messaggio introduttivo
 show_intro_message_once(ADDON_NAME, FIRST_RUN_FILE)
-
-def is_repo_installed_by_id(repo_id):
-    return xbmc.getCondVisibility(f"System.HasAddon({repo_id})") == 1
-
-def is_any_sandmann_repo_installed():
-    return is_repo_installed_by_id(SANDMANN_REPO_ID)
-
-def is_elementum_repo_installed():
-    return is_repo_installed_by_id(ELEMENTUM_REPO_ID)
 
 class RepoManagerGUI(xbmcgui.WindowXML):
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.sources = []
         self.selected_index = 0
-        self.existing_urls = []
         self.controls = {}
 
     def onInit(self):
-        self.controls['list']        = self.getControl(100)
-        self.controls['title']       = self.getControl(101)
-        self.controls['description'] = self.getControl(200)
-        self.controls['link']        = self.getControl(103)
-        self.controls['qr']          = self.getControl(300)
+        self.controls = {
+            'list': self.getControl(100),
+            'title': self.getControl(101),
+            'description': self.getControl(200),
+            'link': self.getControl(103),
+            'qr': self.getControl(300)
+        }
         self.load_data()
         self.populate_list()
         self.setFocusId(100)
@@ -100,19 +81,7 @@ class RepoManagerGUI(xbmcgui.WindowXML):
         if ADDON.getSetting("ShowAdult") != "true":
             sources = [s for s in sources if s.get("name") != "Dobbelina repo (Cumination)"]
         self.sources = sources
-        self.existing_urls = get_existing_sources()
         log(f"Caricate {len(sources)} sorgenti")
-
-    def is_repo_installed(self, repo):
-        name = repo.get("name","").lower()
-        url  = repo.get("url","")
-        if "kodinerds" in name:
-            return is_repo_installed_by_id(KODINERDS_REPO_ID)
-        if "sandmann" in name:
-            return is_any_sandmann_repo_installed()
-        if "elementum" in name:
-            return is_elementum_repo_installed()
-        return url in self.existing_urls
 
     def normalize_folder_name(self, name):
         remove = ["repo","repository","addon","per","l'","di","da","e"]
@@ -136,39 +105,48 @@ class RepoManagerGUI(xbmcgui.WindowXML):
                 os.makedirs(path)
                 log(f"Cartella icona creata: {path}")
             except Exception as e:
-                log(f"Errore creazione icona: {e}", xbmc.LOGERROR)
+                log(f"Errore creazione cartella: {str(e)}", xbmc.LOGERROR)
 
     def populate_list(self):
         lst = self.controls['list']
         lst.reset()
+        
         if not self.sources:
             lst.addItem(xbmcgui.ListItem("Nessun repository disponibile"))
             return
 
-        icons_base = os.path.join(ADDON_PATH,'resources','icone')
+        icons_base = os.path.join(ADDON_PATH, 'resources', 'icone')
         if not os.path.exists(icons_base):
             os.makedirs(icons_base)
 
-        default_icon = os.path.join(icons_base,'default.png')
+        default_icon = os.path.join(icons_base, 'default.png')
+        
         for repo in self.sources:
-            folder = os.path.join(icons_base, self.normalize_folder_name(repo['name']))
-            self.create_icon_folder_if_missing(folder)
+            folder_name = self.normalize_folder_name(repo['name'])
+            folder_path = os.path.join(icons_base, folder_name)
+            self.create_icon_folder_if_missing(folder_path)
+            
             icon = None
-            if os.path.isdir(folder):
-                for f in os.listdir(folder):
+            if os.path.isdir(folder_path):
+                for f in os.listdir(folder_path):
                     if f.lower().startswith('icon'):
-                        icon = os.path.join(folder,f); break
+                        icon = os.path.join(folder_path, f)
+                        break
+            
             if not icon and os.path.exists(default_icon):
                 icon = default_icon
 
             item = xbmcgui.ListItem(repo['name'])
-            if icon: item.setArt({'icon':icon})
-            item.setProperty('description', repo.get('description',''))
-            item.setProperty('telegram',    repo.get('telegram',''))
-            checked = "true" if self.is_repo_installed(repo) else "false"
-            item.setProperty('checked', checked)
-            item.setProperty('action_label',
-                "Rimuovi" if checked=="true" else "Aggiungi")
+            if icon: 
+                item.setArt({'icon': icon})
+                
+            item.setProperty('description', repo.get('description', ''))
+            item.setProperty('telegram', repo.get('telegram', ''))
+            
+            installed = is_repo_installed(repo)
+            item.setProperty('checked', "true" if installed else "false")
+            item.setProperty('action_label', "Rimuovi" if installed else "Aggiungi")
+            
             lst.addItem(item)
 
         lst.selectItem(0)
@@ -176,78 +154,104 @@ class RepoManagerGUI(xbmcgui.WindowXML):
         self.update_display()
 
     def update_display(self):
-        r = self.sources[self.selected_index]
-        self.controls['title'].setLabel(r.get('name',''))
-        self.controls['description'].setText(r.get('description',''))
+        if not self.sources or self.selected_index >= len(self.sources):
+            return
+            
+        repo = self.sources[self.selected_index]
+        self.controls['title'].setLabel(repo.get('name', ''))
+        self.controls['description'].setText(repo.get('description', ''))
     
-        telegram_url = r.get('telegram', '')
-        self.controls['link'].setLabel(telegram_url or "Nessun canale Telegram disponibile")
+        telegram_url = repo.get('telegram', '')
+        link_label = telegram_url if telegram_url else "Nessun canale Telegram disponibile"
+        self.controls['link'].setLabel(link_label)
     
         # Genera QR code solo se c'è un URL Telegram
         if telegram_url:
-            qr_path = generate_qr_code(telegram_url, r['name'])
-            self.controls['qr'].setImage(qr_path)
+            qr_path = generate_qr_code(telegram_url, repo['name'])
         else:
-            self.controls['qr'].setImage(NO_TELEGRAM_IMG)
+            qr_path = NO_TELEGRAM_IMG
+            
+        self.controls['qr'].setImage(qr_path)
 
     def onAction(self, action):
-        aid = action.getId()
-        if aid in (xbmcgui.ACTION_NAV_BACK, xbmcgui.ACTION_PREVIOUS_MENU):
-            self.close(); return
-        if self.getFocusId()==100:
-            idx = self.controls['list'].getSelectedPosition()
-            if idx!=self.selected_index:
-                self.selected_index = idx
+        action_id = action.getId()
+        if action_id in (xbmcgui.ACTION_NAV_BACK, xbmcgui.ACTION_PREVIOUS_MENU):
+            self.close()
+            return
+            
+        if self.getFocusId() == 100:  # La lista è in focus
+            new_index = self.controls['list'].getSelectedPosition()
+            if new_index != self.selected_index and new_index < len(self.sources):
+                self.selected_index = new_index
                 self.update_display()
 
-    def onClick(self, cid):
-        if cid==100:
-            repo = self.sources[self.controls['list'].getSelectedPosition()]
-            if self.is_repo_installed(repo):
-                self.uninstall_single(repo, True)
-            else:
-                self.install_single(repo, True)
-        elif cid==500:
+    def onClick(self, controlId):
+        if controlId == 100:  # Click sulla lista
+            self.selected_index = self.controls['list'].getSelectedPosition()
+            if self.selected_index < len(self.sources):
+                repo = self.sources[self.selected_index]
+                if is_repo_installed(repo):
+                    self.uninstall_single(repo, True)
+                else:
+                    self.install_single(repo, True)
+                    
+        elif controlId == 500:  # Installa tutto
             self.install_all()
-        elif cid==700:
+            
+        elif controlId == 700:  # Rimuovi tutto
             self.uninstall_all()
-        elif cid==600:
+            
+        elif controlId == 600:  # Aggiorna lista
             self.refresh_list()
-        elif cid==202:
+            
+        elif controlId == 202:  # File manager
             xbmc.executebuiltin("ActivateWindow(filemanager)")
-        elif cid==203:
+            
+        elif controlId == 203:  # Installa da ZIP
             xbmc.executebuiltin('InstallFromZip()')
 
     def refresh_list(self):
         if check_for_updates():
             self.load_data()
             self.populate_list()
-            xbmcgui.Dialog().notification(ADDON_NAME, "Lista aggiornata!", ADDON_ICON, 3000)
+            xbmcgui.Dialog().notification(
+                ADDON_NAME, 
+                "Lista repository aggiornata!", 
+                ADDON_ICON, 
+                3000
+            )
 
     def install_all(self):
-        added = skipped = 0
-        dlg = xbmcgui.DialogProgress()
-        dlg.create(ADDON_NAME, "Installazione in corso...")
+        # Callback per aggiornamento progresso
+        def progress_callback(index, total, name):
+            if progress_dialog.iscanceled():
+                return True  # Interrompi
+            progress_dialog.update(
+                (index * 100) // total, 
+                f"Elaborazione: {name}"
+            )
+            return False
         
-        for i, repo in enumerate(self.sources):
-            if dlg.iscanceled(): 
-                break
-            dlg.update((i*100)//len(self.sources), repo['name'])
-            if self.is_repo_installed(repo):
-                skipped += 1
-            else:
-                if self.install_single(repo, False):
-                    added += 1
-                else:
-                    skipped += 1
+        # Crea dialog progresso
+        progress_dialog = xbmcgui.DialogProgress()
+        progress_dialog.create(ADDON_NAME, "Installazione in corso...")
         
-        dlg.close()
+        # Esegui installazione di massa
+        added, skipped = install_all_repos(
+            self.sources, 
+            progress_callback=progress_callback
+        )
+        
+        progress_dialog.close()
         self.load_data()
         self.populate_list()
         
+        # Mostra risultati
         xbmcgui.Dialog().ok(
             ADDON_NAME,
-            f"Aggiunta completata:\n[COLOR=lime]{added}[/COLOR] sorgenti nuove\n[COLOR=grey]{skipped}[/COLOR] già presenti"
+            f"Aggiunta completata:\n"
+            f"[COLOR=lime]{added}[/COLOR] sorgenti nuove\n"
+            f"[COLOR=grey]{skipped}[/COLOR] già presenti"
         )
         
         if added > 0:
@@ -267,6 +271,7 @@ class RepoManagerGUI(xbmcgui.WindowXML):
                 )
 
     def uninstall_all(self):
+        # Conferma con l'utente
         if not xbmcgui.Dialog().yesno(
             ADDON_NAME,
             "Vuoi davvero rimuovere TUTTE le sorgenti?\n\n"
@@ -276,25 +281,31 @@ class RepoManagerGUI(xbmcgui.WindowXML):
         ): 
             return
         
-        removed = errors = 0
-        dlg = xbmcgui.DialogProgress()
-        dlg.create(ADDON_NAME, "Rimozione in corso...")
+        # Callback per aggiornamento progresso
+        def progress_callback(index, total, name):
+            if progress_dialog.iscanceled():
+                return True  # Interrompi
+            progress_dialog.update(
+                (index * 100) // total, 
+                f"Rimozione: {name}"
+            )
+            return False
         
-        for i, repo in enumerate(self.sources):
-            if dlg.iscanceled(): 
-                break
-            dlg.update((i*100)//len(self.sources), repo['name'])
-            if not self.is_repo_installed(repo): 
-                continue
-            if self.uninstall_single(repo, False):
-                removed += 1
-            else:
-                errors += 1
+        # Crea dialog progresso
+        progress_dialog = xbmcgui.DialogProgress()
+        progress_dialog.create(ADDON_NAME, "Rimozione in corso...")
         
-        dlg.close()
+        # Esegui rimozione di massa
+        removed, errors = uninstall_all_repos(
+            self.sources, 
+            progress_callback=progress_callback
+        )
+        
+        progress_dialog.close()
         self.load_data()
         self.populate_list()
         
+        # Mostra risultati
         if removed > 0 or errors > 0:
             message = (
                 f"Rimozione completata:\n"
@@ -325,32 +336,22 @@ class RepoManagerGUI(xbmcgui.WindowXML):
 
     def install_single(self, repo, show_dialog=True):
         name = repo['name']
-        lower = name.lower()
-        added = False
-
-        if self.is_repo_installed(repo):
+        
+        if is_repo_installed(repo):
             if show_dialog:
-                xbmcgui.Dialog().notification(ADDON_NAME, f"La sorgente «{name}» è già presente", ADDON_ICON, 3000)
+                xbmcgui.Dialog().notification(
+                    ADDON_NAME, 
+                    f"La sorgente «{name}» è già presente", 
+                    ADDON_ICON, 
+                    3000
+                )
             return False
 
-        try:
-            if "kodinerds" in lower:
-                added = download_latest_kodinerds_zip()
-            elif "sandmann" in lower:
-                added = download_sandmann_repo()
-            elif "elementum" in lower:
-                added = download_elementum_repo()
-            else:
-                added = add_source_to_xml(repo)
-        except Exception as e:
-            log(f"Errore install {name}: {traceback.format_exc()}", xbmc.LOGERROR)
-            if show_dialog:
-                xbmcgui.Dialog().notification(ADDON_NAME, f"Errore installazione {name}", ADDON_ICON, 3000)
-            return False
-
-        if added:
+        success = install_repo(repo)
+        if success:
             self.load_data()
             self.populate_list()
+            
             if show_dialog:
                 if xbmcgui.Dialog().yesno(
                     ADDON_NAME, 
@@ -366,11 +367,18 @@ class RepoManagerGUI(xbmcgui.WindowXML):
                         ADDON_ICON, 
                         3000
                     )
-        return added
+        elif show_dialog:
+            xbmcgui.Dialog().notification(
+                ADDON_NAME, 
+                f"Errore installazione «{name}»", 
+                ADDON_ICON, 
+                3000
+            )
+            
+        return success
 
     def uninstall_single(self, repo, show_dialog=True):
         name = repo['name']
-        lower = name.lower()
         
         if show_dialog:
             if not xbmcgui.Dialog().yesno(
@@ -381,25 +389,11 @@ class RepoManagerGUI(xbmcgui.WindowXML):
             ):
                 return False
 
-        removed = False
-        try:
-            if "kodinerds" in lower:
-                removed |= remove_physical_repo(KODINERDS_REPO_ID)
-            elif "sandmann" in lower:
-                removed |= remove_physical_repo(SANDMANN_REPO_ID)
-            elif "elementum" in lower:
-                removed |= remove_physical_repo(ELEMENTUM_REPO_ID)
-            else:
-                removed = remove_source_from_xml(repo)
-        except Exception as e:
-            log(f"Errore uninstall {name}: {traceback.format_exc()}", xbmc.LOGERROR)
-            if show_dialog:
-                xbmcgui.Dialog().notification(ADDON_NAME, f"Errore rimozione {name}", ADDON_ICON, 3000)
-            return False
-
-        if removed:
+        success = uninstall_repo(repo)
+        if success:
             self.load_data()
             self.populate_list()
+            
             if show_dialog:
                 if xbmcgui.Dialog().yesno(
                     ADDON_NAME,
@@ -415,10 +409,18 @@ class RepoManagerGUI(xbmcgui.WindowXML):
                         ADDON_ICON,
                         3000
                     )
-        return removed
+        elif show_dialog:
+            xbmcgui.Dialog().notification(
+                ADDON_NAME, 
+                f"Errore rimozione «{name}»", 
+                ADDON_ICON, 
+                3000
+            )
+            
+        return success
 
 if __name__ == "__main__":
-    xbmc.sleep(300)
+    xbmc.sleep(300)  # Piccolo delay per evitare conflitti
     win = RepoManagerGUI("RepoManagerGUI.xml", ADDON_PATH, "default")
     win.doModal()
     del win
