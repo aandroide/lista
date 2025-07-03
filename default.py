@@ -6,7 +6,6 @@ import xbmcvfs
 import os
 import json
 import urllib.request
-import xml.etree.ElementTree as ET
 import pyqrcode
 import traceback
 import shutil
@@ -18,8 +17,7 @@ from resources.lib.utils import (
     log, 
     safe_download_file, 
     get_existing_sources, 
-    remove_physical_repo,
-    remove_source_from_xml 
+    remove_physical_repo
 )
 
 from resources.lib.kodinerds_downloader import download_latest_kodinerds_zip
@@ -29,6 +27,7 @@ from resources.lib.repo_installer import install_from_html
 from resources.lib.update_checker import check_for_updates
 from resources.lib.first_run import show_intro_message_once
 from resources.lib.qr_generator import generate_qr_code
+from resources.lib.sources_manager import add_source_to_xml, remove_source_from_xml
 
 # Addon constants
 ADDON        = xbmcaddon.Addon()
@@ -77,63 +76,6 @@ def is_any_sandmann_repo_installed():
 
 def is_elementum_repo_installed():
     return is_repo_installed_by_id(ELEMENTUM_REPO_ID)
-    
-def add_source_to_xml(repo):
-    sources_path = xbmcvfs.translatePath("special://profile/sources.xml")
-    name = repo.get("name","Sconosciuto")
-    url  = repo.get("url","")
-    if not url:
-        log(f"Sorgente '{name}' senza URL", xbmc.LOGWARNING)
-        return False
-
-    if os.path.exists(sources_path):
-        try:
-            tree = ET.parse(sources_path)
-            root = tree.getroot()
-        except:
-            root = ET.Element("sources")
-            tree = ET.ElementTree(root)
-    else:
-        root = ET.Element("sources")
-        tree = ET.ElementTree(root)
-
-    files = root.find("files") or ET.SubElement(root, "files")
-
-    # Evita duplicati
-    for s in files.findall("source"):
-        p = s.find("path")
-        if p is not None and p.text == url:
-            return False
-
-    src = ET.SubElement(files, "source")
-    ET.SubElement(src, "name").text = name
-    ET.SubElement(src, "path", pathversion="1").text = url
-    ET.SubElement(src, "allowsharing").text = "true"
-
-    # Indentazione
-    def indent(e, level=0):
-        sp = "  "
-        nl = "\n" + level*sp
-        if len(e):
-            if not e.text or not e.text.strip():
-                e.text = nl + sp
-            for c in e:
-                indent(c, level+1)
-            if not c.tail or not c.tail.strip():
-                c.tail = nl
-        else:
-            if level and (not e.tail or not e.tail.strip()):
-                e.tail = nl
-
-    indent(root)
-    try:
-        xml = ET.tostring(root, encoding='utf-8', xml_declaration=True)
-        with open(sources_path, 'wb') as f:
-            f.write(xml)
-        return True
-    except Exception as e:
-        log(f"Errore scrittura sources.xml: {e}", xbmc.LOGERROR)
-        return False
 
 class RepoManagerGUI(xbmcgui.WindowXML):
     def __init__(self, *args, **kwargs):
