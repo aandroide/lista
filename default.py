@@ -4,7 +4,6 @@ import xbmcgui
 import xbmcaddon
 import xbmcvfs
 import os
-import re
 
 from resources.lib.utils import (
     get_sources_list, 
@@ -22,6 +21,7 @@ from resources.lib.repo_installer import (
 from resources.lib.update_checker import check_for_updates
 from resources.lib.first_run import show_intro_message_once
 from resources.lib.qr_generator import generate_qr_code
+from resources.lib.icon_utils import normalize_folder_name, create_icon_folder_if_missing
 
 # Addon constants
 ADDON        = xbmcaddon.Addon()
@@ -83,30 +83,6 @@ class RepoManagerGUI(xbmcgui.WindowXML):
         self.sources = sources
         log(f"Caricate {len(sources)} sorgenti")
 
-    def normalize_folder_name(self, name):
-        remove = ["repo","repository","addon","per","l'","di","da","e"]
-        reps   = {"themoviebd":"tmdb","helper":"hlp","artic":"art",
-                  "netflix":"nx","amazon":"az","vod":"video",
-                  "cumination":"cumi","elementum":"elem"}
-        for k,v in reps.items():
-            name = name.replace(k,v)
-        words = [w for w in name.split() if w.lower() not in remove]
-        n = "_".join(words)
-        n = re.sub(r'[^a-z0-9]','_',n.lower())
-        n = re.sub(r'_+','_',n).strip('_')
-        if len(n)>25:
-            parts = n.split('_')
-            n = "".join(p[0] for p in parts) if len(parts)>1 else n[:15]
-        return n
-
-    def create_icon_folder_if_missing(self, path):
-        if not os.path.exists(path):
-            try:
-                os.makedirs(path)
-                log(f"Cartella icona creata: {path}")
-            except Exception as e:
-                log(f"Errore creazione cartella: {str(e)}", xbmc.LOGERROR)
-
     def populate_list(self):
         lst = self.controls['list']
         lst.reset()
@@ -122,9 +98,9 @@ class RepoManagerGUI(xbmcgui.WindowXML):
         default_icon = os.path.join(icons_base, 'default.png')
         
         for repo in self.sources:
-            folder_name = self.normalize_folder_name(repo['name'])
+            folder_name = normalize_folder_name(repo['name'])  # <-- Funzione spostata
             folder_path = os.path.join(icons_base, folder_name)
-            self.create_icon_folder_if_missing(folder_path)
+            create_icon_folder_if_missing(folder_path)  # <-- Funzione spostata
             
             icon = None
             if os.path.isdir(folder_path):
