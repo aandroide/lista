@@ -77,6 +77,12 @@
       "description": "Utilizzando OptiKlean, è possibile: liberare spazio su disco rimuovendo files temporanei e obsoleti, eliminare residui di addon disabilitati e disinstallati, ridurre la frammentazione dei database SQLite, migliorare sensibilmente la velocità di risposta dell’interfaccia e la stabilità generale del sistema. Con un’interfaccia semplice ma potente, e funzionalità automatizzabili all’avvio di Kodi, OptiKlean è lo strumento ideale per mantenere il proprio media center sempre efficiente.",
       "url": "https://www.digitalking.it/kodi-repo/",
       "telegram": "https://t.me/ItalianSpaghettiGeeks"
+    },
+    {
+      "name": "Rock Clean",
+      "description": "addon per la pulizia su Kodi",
+      "url": "http://www.rockodi.com",
+      "telegram": ""
     }
   ]
 }
