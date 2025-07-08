@@ -1,3 +1,4 @@
+
 {
   "sources": [
     {
@@ -89,6 +90,12 @@
       "description": "Guarda i tuoi contenuti YouTube preferiti su Kodi",
       "url": "https://github.com/anxdpanic/plugin.video.youtube/releases/",
       "telegram": "https://github.com/anxdpanic/plugin.video.youtube/issues/1095"
+    },
+    {
+      "name": "Trakt Addon",
+      "description": "Scarica l'ultima versione dello script Trakt",
+      "url": "https://github.com/trakt/script.trakt/releases",
+      "telegram": ""
     }
   ]
 }
