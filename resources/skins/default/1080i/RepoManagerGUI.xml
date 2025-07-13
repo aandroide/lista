@@ -178,29 +178,14 @@
         <textcolor>white</textcolor>
         <texturenofocus border="0,0,0,0">button-nofocus.png</texturenofocus>
         <texturefocus border="0,0,0,0">button-focus.png</texturefocus>
-        <ondown>SetFocus(203)</ondown>
-        <onup>SetFocus(500)</onup>
-      </control>
-
-      <control type="button" id="203">
-        <label>Apri Installa da file zip</label>
-        <left>40</left>
-        <top>950</top>
-        <width>880</width>
-        <height>60</height>
-        <font>font13</font>
-        <align>center</align>
-        <textcolor>white</textcolor>
-        <texturenofocus border="0,0,0,0">button-nofocus.png</texturenofocus>
-        <texturefocus border="0,0,0,0">button-focus.png</texturefocus>
         <ondown>SetFocus(700)</ondown>
-        <onup>SetFocus(202)</onup>
+        <onup>SetFocus(500)</onup>
       </control>
 
       <control type="button" id="700">
         <label>Rimuovi Tutti</label>
         <left>40</left>
-        <top>1020</top>
+        <top>950</top> 
         <width>880</width>
         <height>60</height>
         <font>font13</font>
@@ -209,7 +194,7 @@
         <texturenofocus border="0,0,0,0">button-nofocus.png</texturenofocus>
         <texturefocus border="0,0,0,0">button-focus.png</texturefocus>
         <ondown>SetFocus(500)</ondown>
-        <onup>SetFocus(203)</onup>
+        <onup>SetFocus(202)</onup>
       </control>
     </control>
 
