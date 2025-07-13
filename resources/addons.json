@@ -81,31 +81,31 @@
     },
     {
       "name": "Rock Clean repo",
-      "description": "addon per la pulizia su Kodi",
+      "description": "Addon per la pulizia su Kodi.",
       "url": "http://www.rockodi.com",
       "telegram": ""
     },
     {
       "name": "Youtube repo",
-      "description": "Guarda i tuoi contenuti YouTube preferiti su Kodi",
+      "description": "Guarda i tuoi contenuti YouTube preferiti su Kodi.",
       "url": "https://github.com/anxdpanic/plugin.video.youtube/releases/",
       "telegram": "https://github.com/anxdpanic/plugin.video.youtube/issues/1095"
     },
     {
       "name": "Trakt Addon repo",
-      "description": "Scarica l'ultima versione dello script Trakt",
+      "description": "Scarica l'ultima versione dello script Trakt.",
       "url": "https://github.com/trakt/script.trakt/releases",
       "telegram": ""
     },
     {
       "name": "Slyguy.addons repo",
-      "description": "Repository contenente addons sviluppati e mantenuti da Matt Huisman, come Disney+, Pluto TV, Samsung TV Plus, Roku e altri, per alcuni addons è necessario un account con regolare abbonamento",
+      "description": "Repository contenente addons sviluppati e mantenuti da Matt Huisman, come Disney+, Pluto TV, Samsung TV Plus, Roku e altri, per alcuni addons è necessario un account con regolare abbonamento.",
       "url": "http://slyguy.uk",
       "telegram": ""
     },
 	{
       "name": "YT Music repo",
-      "description": "Repo per l'addon YT Music, ascolta la tua musica preferita su Kodi grazie al servizio YouTube Music",
+      "description": "Repo per l'addon YT Music, ascolta la tua musica preferita su Kodi grazie al servizio YouTube Music.",
       "url": "https://goldenfreddy0703.github.io/repository.ytmusic/",
       "telegram": "https://github.com/anxdpanic/plugin.video.youtube/issues/1095"
     }
