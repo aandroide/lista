@@ -86,7 +86,7 @@
       "telegram": ""
     },
     {
-      "name": "Youtube repo",
+      "name": "Youtube",
       "description": "Guarda i tuoi contenuti YouTube preferiti su Kodi.",
       "url": "https://github.com/anxdpanic/plugin.video.youtube/releases/",
       "telegram": "https://github.com/anxdpanic/plugin.video.youtube/issues/1095"
@@ -104,7 +104,7 @@
       "telegram": ""
     },
 	{
-      "name": "YT Music repo",
+      "name": "YT Music",
       "description": "Repo per l'addon YT Music, ascolta la tua musica preferita su Kodi grazie al servizio YouTube Music.",
       "url": "https://goldenfreddy0703.github.io/repository.ytmusic/",
       "telegram": "https://github.com/anxdpanic/plugin.video.youtube/issues/1095"

@@ -152,7 +152,7 @@ class RepoManagerGUI(xbmcgui.WindowXML):
         self.controls['title'].setLabel(name)
         self.controls['description'].setText(desc)
 
-        if name.lower() == 'youtube repo' or 'YT Music repo':
+        if name.lower() == 'youtube' or 'YT Music':
             self.controls['static_label'].setLabel("Istruzioni per la creazione delle chiavi API Youtube")
         else:
             self.controls['static_label'].setLabel("Canale di supporto Telegram")
