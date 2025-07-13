@@ -9,7 +9,7 @@
            default="lista"
            longlabel="Inserisci il nome del repository (cartella) su GitHub che contiene addons.json." />
   <setting id="github_branch" type="text" label="GitHub Branch"
-           default="master"
+           default="modular"
            longlabel="Inserisci il nome del branch GitHub da cui scaricare addons.json." />
 </category>
 
