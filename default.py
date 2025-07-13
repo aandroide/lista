@@ -188,8 +188,6 @@ class RepoManagerGUI(xbmcgui.WindowXML):
             self.refresh_list()
         elif controlId == 202:  # Apri Gestore File
             xbmc.executebuiltin("ActivateWindow(filemanager)")
-        elif controlId == 203:  # Apri Installa da file zip
-            xbmc.executebuiltin('InstallFromZip()')
             
     def handle_repo_click(self):
         """Gestione del click su un elemento della lista"""
