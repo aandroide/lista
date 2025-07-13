@@ -80,19 +80,19 @@
       "telegram": "https://t.me/ItalianSpaghettiGeeks"
     },
     {
-      "name": "Rock Clean",
+      "name": "Rock Clean repo",
       "description": "addon per la pulizia su Kodi",
       "url": "http://www.rockodi.com",
       "telegram": ""
     },
     {
-      "name": "Youtube",
+      "name": "Youtube repo",
       "description": "Guarda i tuoi contenuti YouTube preferiti su Kodi",
       "url": "https://github.com/anxdpanic/plugin.video.youtube/releases/",
       "telegram": "https://github.com/anxdpanic/plugin.video.youtube/issues/1095"
     },
     {
-      "name": "Trakt Addon",
+      "name": "Trakt Addon repo",
       "description": "Scarica l'ultima versione dello script Trakt",
       "url": "https://github.com/trakt/script.trakt/releases",
       "telegram": ""
