@@ -96,6 +96,12 @@
       "description": "Scarica l'ultima versione dello script Trakt",
       "url": "https://github.com/trakt/script.trakt/releases",
       "telegram": ""
-    }
+    },
+    {
+      "name": "Slyguy addons repo",
+      "description": "slyguy repo",
+      "url": "https://slyguy.uk/",
+      "telegram": ""
+    },
   ]
 }
