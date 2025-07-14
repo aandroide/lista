@@ -62,6 +62,28 @@ else:
 # Messaggio introduttivo
 show_intro_message_once(ADDON_NAME, FIRST_RUN_FILE)
 
+# Funzioni helper per gestire lo stato di installazione dei repository speciali
+def is_youtube_installed():
+    youtube_dir = os.path.join(ADDON_PATH, 'resources', 'youtube_install')
+    return os.path.exists(youtube_dir) and os.listdir(youtube_dir)
+
+def is_trakt_installed():
+    trakt_dir = os.path.join(ADDON_PATH, 'resources', 'trakt_install')
+    return os.path.exists(trakt_dir) and os.listdir(trakt_dir)
+
+def uninstall_youtube():
+    youtube_dir = os.path.join(ADDON_PATH, 'resources', 'youtube_install')
+    if os.path.exists(youtube_dir):
+        shutil.rmtree(youtube_dir)
+        return True
+    return False
+
+def uninstall_trakt():
+    trakt_dir = os.path.join(ADDON_PATH, 'resources', 'trakt_install')
+    if os.path.exists(trakt_dir):
+        shutil.rmtree(trakt_dir)
+        return True
+    return False
 
 class RepoManagerGUI(xbmcgui.WindowXML):
     def __init__(self, *args, **kwargs):
@@ -127,10 +149,14 @@ class RepoManagerGUI(xbmcgui.WindowXML):
             
             # Gestione speciale per YouTube e Trakt
             repo_name = repo.get('name', '').lower()
-            if repo_name == 'youtube repo' or repo_name == 'trakt addon repo':
-                # YouTube e Trakt non vengono gestiti come sorgenti normali
-                item.setProperty('checked', "false")
-                item.setProperty('action_label', "Installa")
+            if repo_name == 'youtube repo':
+                installed = is_youtube_installed()
+                item.setProperty('checked', "true" if installed else "false")
+                item.setProperty('action_label', "Rimuovi" if installed else "Installa")
+            elif repo_name == 'trakt addon repo':
+                installed = is_trakt_installed()
+                item.setProperty('checked', "true" if installed else "false")
+                item.setProperty('action_label', "Rimuovi" if installed else "Installa")
             else:
                 installed = is_repo_installed(repo)
                 item.setProperty('checked', "true" if installed else "false")
@@ -205,6 +231,29 @@ class RepoManagerGUI(xbmcgui.WindowXML):
             
             # Gestione speciale per YouTube
             if name_lower == 'youtube repo':
+                # Se è già installato, disinstalla
+                if is_youtube_installed():
+                    if xbmcgui.Dialog().yesno(
+                        ADDON_NAME,
+                        f"Rimuovere completamente i file di installazione di YouTube?",
+                        f"Questo eliminerà i file ZIP scaricati.",
+                        yeslabel="Rimuovi",
+                        nolabel="Annulla"
+                    ):
+                        if uninstall_youtube():
+                            log("File di YouTube rimossi con successo", xbmc.LOGINFO)
+                            self.populate_list()
+                            xbmcgui.Dialog().notification(
+                                ADDON_NAME,
+                                "File di YouTube rimossi",
+                                ADDON_ICON,
+                                3000
+                            )
+                        else:
+                            log("Errore nella rimozione dei file di YouTube", xbmc.LOGERROR)
+                    return
+                
+                # Altrimenti, procedi con l'installazione
                 options = ["Scarica ultima versione Official", "Scarica ultima versione Beta"]
                 choice = xbmcgui.Dialog().select("YouTube Addon repo", options)
                 if choice < 0:
@@ -215,6 +264,7 @@ class RepoManagerGUI(xbmcgui.WindowXML):
                 
                 if success:
                     log("Installazione YouTube completata con successo", xbmc.LOGINFO)
+                    self.populate_list()
                     if xbmcgui.Dialog().yesno(
                         ADDON_NAME,
                         "File di YouTube scaricato con successo! Per completare l'installazione, dopo il riavvio vai in 'Installa da file zip' -> 'YouTube Install'.\n\nRiavviare Kodi ora?",
@@ -231,7 +281,6 @@ class RepoManagerGUI(xbmcgui.WindowXML):
                         )
                 else:
                     log("Errore durante l'installazione di YouTube", xbmc.LOGERROR)
-                    # Messaggio di errore più specifico
                     xbmcgui.Dialog().notification(
                         ADDON_NAME,
                         "Errore durante l'installazione di YouTube. Controlla i log per i dettagli.",
@@ -242,8 +291,32 @@ class RepoManagerGUI(xbmcgui.WindowXML):
             
             # Gestione speciale per Trakt
             if name_lower == 'trakt addon repo':
+                # Se è già installato, disinstalla
+                if is_trakt_installed():
+                    if xbmcgui.Dialog().yesno(
+                        ADDON_NAME,
+                        f"Rimuovere completamente i file di installazione di Trakt?",
+                        f"Questo eliminerà i file ZIP scaricati.",
+                        yeslabel="Rimuovi",
+                        nolabel="Annulla"
+                    ):
+                        if uninstall_trakt():
+                            log("File di Trakt rimossi con successo", xbmc.LOGINFO)
+                            self.populate_list()
+                            xbmcgui.Dialog().notification(
+                                ADDON_NAME,
+                                "File di Trakt rimossi",
+                                ADDON_ICON,
+                                3000
+                            )
+                        else:
+                            log("Errore nella rimozione dei file di Trakt", xbmc.LOGERROR)
+                    return
+                
+                # Altrimenti, procedi con l'installazione
                 log("Avvio installazione Trakt", xbmc.LOGINFO)
                 install_trakt_addon()
+                self.populate_list()
                 return
             
             # Gestione standard per altri repository
@@ -323,6 +396,8 @@ class RepoManagerGUI(xbmcgui.WindowXML):
                 choice = xbmcgui.Dialog().select("YouTube Addon repo", options)
                 if choice >= 0:
                     try:
+                        # Forza la sovrascrittura
+                        uninstall_youtube()
                         success = install_youtube_addon(use_beta=(choice == 1))
                     except Exception as e:
                         log(f"Errore installazione YouTube: {str(e)}", xbmc.LOGERROR)
@@ -332,6 +407,8 @@ class RepoManagerGUI(xbmcgui.WindowXML):
                         added_special += 1
             elif name_lower == 'trakt addon repo':
                 try:
+                    # Forza la sovrascrittura
+                    uninstall_trakt()
                     success = install_trakt_addon()
                     if success:
                         added_special += 1
@@ -388,6 +465,13 @@ class RepoManagerGUI(xbmcgui.WindowXML):
         progress_dialog.create(ADDON_NAME, "Rimozione in corso...")
 
         removed, errors = uninstall_all_repos(self.sources, progress_callback=progress_callback)
+        
+        # Rimuovi anche i repository speciali
+        if is_youtube_installed():
+            uninstall_youtube()
+        if is_trakt_installed():
+            uninstall_trakt()
+        
         progress_dialog.close()
         self.load_data()
         self.populate_list()
