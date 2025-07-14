@@ -128,6 +128,7 @@ class RepoManagerGUI(xbmcgui.WindowXML):
             # Gestione speciale per YouTube e Trakt
             repo_name = repo.get('name', '').lower()
             if repo_name == 'youtube repo' or repo_name == 'trakt addon repo':
+                # YouTube e Trakt non vengono gestiti come sorgenti normali
                 item.setProperty('checked', "false")
                 item.setProperty('action_label', "Installa")
             else:
@@ -230,6 +231,13 @@ class RepoManagerGUI(xbmcgui.WindowXML):
                         )
                 else:
                     log("Errore durante l'installazione di YouTube", xbmc.LOGERROR)
+                    # Messaggio di errore più specifico
+                    xbmcgui.Dialog().notification(
+                        ADDON_NAME,
+                        "Errore durante l'installazione di YouTube. Controlla i log per i dettagli.",
+                        xbmcgui.NOTIFICATION_ERROR,
+                        5000
+                    )
                 return
             
             # Gestione speciale per Trakt
@@ -314,12 +322,21 @@ class RepoManagerGUI(xbmcgui.WindowXML):
                 options = ["Scarica ultima versione Official", "Scarica ultima versione Beta"]
                 choice = xbmcgui.Dialog().select("YouTube Addon repo", options)
                 if choice >= 0:
-                    success = install_youtube_addon(use_beta=(choice == 1))
+                    try:
+                        success = install_youtube_addon(use_beta=(choice == 1))
+                    except Exception as e:
+                        log(f"Errore installazione YouTube: {str(e)}", xbmc.LOGERROR)
+                        success = False
+                    
                     if success:
                         added_special += 1
             elif name_lower == 'trakt addon repo':
-                if install_trakt_addon():
-                    added_special += 1
+                try:
+                    success = install_trakt_addon()
+                    if success:
+                        added_special += 1
+                except Exception as e:
+                    log(f"Errore installazione Trakt: {str(e)}", xbmc.LOGERROR)
 
         # Aggiornamento interfaccia
         self.load_data()
