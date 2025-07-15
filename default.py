@@ -28,6 +28,7 @@ from resources.lib.update_checker import check_for_updates
 from resources.lib.first_run import show_intro_message_once
 from resources.lib.qr_generator import generate_qr_code
 from resources.lib.icon_utils import normalize_folder_name, create_icon_folder_if_missing
+from resources.lib import sources_manager
 
 ADDON        = xbmcaddon.Addon()
 ADDON_ID     = ADDON.getAddonInfo('id')
@@ -61,6 +62,48 @@ else:
 
 # Messaggio introduttivo
 show_intro_message_once(ADDON_NAME, FIRST_RUN_FILE)
+
+# Funzione per rimuovere le cartelle speciali
+def remove_special_folders():
+    """
+    Rimuove le cartelle speciali e le relative sorgenti da sources.xml
+    per le installazioni temporanee di YouTube e Trakt.
+    """
+    # Configurazione per le installazioni temporanee
+    temp_installs = [
+        {
+            "addon_id": "plugin.video.youtube",
+            "source_name": "YouTube Install",
+            "virtual_path": "special://profile/addon_data/youtube_install/"
+        },
+        {
+            "addon_id": "script.trakt",
+            "source_name": "Trakt Install",
+            "virtual_path": "special://profile/addon_data/trakt_install/"
+        }
+    ]
+    
+    for install in temp_installs:
+        # 1. Rimuovi da sources.xml usando sources_manager
+        fake_repo = {
+            "name": install['source_name'],
+            "url": install['virtual_path']
+        }
+        if sources_manager.remove_source_from_xml(fake_repo):
+            log(f"Rimossa sorgente {install['source_name']} da sources.xml", xbmc.LOGINFO)
+        else:
+            log(f"La sorgente {install['source_name']} non trovata in sources.xml", xbmc.LOGINFO)
+        
+        # 2. Rimuovi cartella fisica
+        dest_dir = xbmcvfs.translatePath(install['virtual_path'])
+        if os.path.exists(dest_dir):
+            try:
+                shutil.rmtree(dest_dir, ignore_errors=True)
+                log(f"Rimossa cartella {install['source_name']}: {dest_dir}", xbmc.LOGINFO)
+            except Exception as e:
+                log(f"Errore rimozione cartella {install['source_name']}: {e}", xbmc.LOGERROR)
+        else:
+            log(f"Cartella {install['source_name']} non trovata: {dest_dir}", xbmc.LOGINFO)
 
 
 class RepoManagerGUI(xbmcgui.WindowXML):
@@ -126,7 +169,9 @@ class RepoManagerGUI(xbmcgui.WindowXML):
             item.setProperty('telegram', repo.get('telegram', ''))
             
             # Gestione speciale per YouTube e Trakt
-            if repo.get('name').lower() == 'youtube' or repo.get('name') == 'Trakt Addon':
+            repo_name = repo.get('name', '').lower()
+            if repo_name == 'youtube repo' or repo_name == 'trakt addon repo':
+                # YouTube e Trakt non vengono gestiti come sorgenti normali
                 item.setProperty('checked', "false")
                 item.setProperty('action_label', "Installa")
             else:
@@ -198,10 +243,11 @@ class RepoManagerGUI(xbmcgui.WindowXML):
 
             repo = self.sources[self.selected_index]
             name = repo.get('name', '')
+            name_lower = name.lower()
             log(f"Click su repository: {name}", xbmc.LOGINFO)
             
             # Gestione speciale per YouTube
-            if name.lower() == 'youtube repo':
+            if name_lower == 'youtube repo':
                 options = ["Scarica ultima versione Official", "Scarica ultima versione Beta"]
                 choice = xbmcgui.Dialog().select("YouTube Addon repo", options)
                 if choice < 0:
@@ -231,7 +277,7 @@ class RepoManagerGUI(xbmcgui.WindowXML):
                 return
             
             # Gestione speciale per Trakt
-            if name == 'Trakt Addon repo':
+            if name_lower == 'trakt addon repo':
                 log("Avvio installazione Trakt", xbmc.LOGINFO)
                 install_trakt_addon()
                 return
@@ -271,6 +317,18 @@ class RepoManagerGUI(xbmcgui.WindowXML):
             )
 
     def install_all(self):
+        # Separare i repository speciali (YouTube e Trakt) dagli altri
+        standard_repos = []
+        special_repos = []
+        
+        for repo in self.sources:
+            name_lower = repo.get('name', '').lower()
+            # Identifica esattamente i repository speciali
+            if name_lower == 'youtube repo' or name_lower == 'trakt addon repo':
+                special_repos.append(repo)
+            else:
+                standard_repos.append(repo)
+
         def progress_callback(index, total, name):
             if progress_dialog.iscanceled():
                 return True
@@ -278,25 +336,62 @@ class RepoManagerGUI(xbmcgui.WindowXML):
             return False
 
         progress_dialog = xbmcgui.DialogProgress()
-        progress_dialog.create(ADDON_NAME, "Installazione in corso...")
-
-        added, skipped = install_all_repos(self.sources, progress_callback=progress_callback)
+        progress_dialog.create(ADDON_NAME, "Installazione repository standard...")
+        
+        # Installazione repository standard
+        added_standard, skipped_standard = 0, 0
+        if standard_repos:
+            added_standard, skipped_standard = install_all_repos(
+                standard_repos, 
+                progress_callback=progress_callback
+            )
+        
         progress_dialog.close()
+        
+        # Installazione repository speciali (YouTube e Trakt)
+        added_special = 0
+        for repo in special_repos:
+            name_lower = repo.get('name', '').lower()
+            
+            if name_lower == 'youtube repo':
+                # YouTube richiede scelta tra versione ufficiale/beta
+                options = ["Scarica ultima versione Official", "Scarica ultima versione Beta"]
+                choice = xbmcgui.Dialog().select("YouTube Addon repo", options)
+                if choice >= 0:
+                    success = install_youtube_addon(use_beta=(choice == 1))
+                    if success:
+                        added_special += 1
+            elif name_lower == 'trakt addon repo':
+                if install_trakt_addon():
+                    added_special += 1
+
+        # Aggiornamento interfaccia
         self.load_data()
         self.populate_list()
 
-        xbmcgui.Dialog().ok(
-            ADDON_NAME,
-            f"Aggiunta completata:\n[COLOR=lime]{added}[/COLOR] sorgenti nuove\n[COLOR=grey]{skipped}[/COLOR] già presenti"
+        # Messaggio riepilogativo
+        message = (
+            f"Installazione completata:\n"
+            f"[COLOR=lime]{added_standard}[/COLOR] sorgenti standard aggiunte\n"
+            f"[COLOR=yellow]{added_special}[/COLOR] sorgenti speciali aggiunte\n"
+            f"[COLOR=grey]{skipped_standard}[/COLOR] sorgenti già presenti"
         )
+        
+        xbmcgui.Dialog().ok(ADDON_NAME, message)
 
-        if added > 0:
-            if xbmcgui.Dialog().yesno(ADDON_NAME, "Riavviare Kodi ora?", yeslabel="Sì", nolabel="No"):
+        # Richiesta riavvio se necessario
+        if added_standard + added_special > 0:
+            if xbmcgui.Dialog().yesno(
+                ADDON_NAME,
+                "Riavviare Kodi ora per applicare le modifiche?",
+                yeslabel="Sì",
+                nolabel="No"
+            ):
                 xbmc.executebuiltin("RestartApp")
             else:
                 xbmcgui.Dialog().notification(
                     ADDON_NAME,
-                    "Riavvio richiesto per applicare le modifiche",
+                    "Ricorda di riavviare Kodi per completare l'installazione",
                     ADDON_ICON,
                     3000
                 )
@@ -320,6 +415,10 @@ class RepoManagerGUI(xbmcgui.WindowXML):
         progress_dialog.create(ADDON_NAME, "Rimozione in corso...")
 
         removed, errors = uninstall_all_repos(self.sources, progress_callback=progress_callback)
+        
+        # Rimuovi le cartelle speciali di YouTube e Trakt
+        remove_special_folders()
+        
         progress_dialog.close()
         self.load_data()
         self.populate_list()
