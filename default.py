@@ -28,6 +28,7 @@ from resources.lib.update_checker import check_for_updates
 from resources.lib.first_run import show_intro_message_once
 from resources.lib.qr_generator import generate_qr_code
 from resources.lib.icon_utils import normalize_folder_name, create_icon_folder_if_missing
+from resources.lib import sources_manager
 
 ADDON        = xbmcaddon.Addon()
 ADDON_ID     = ADDON.getAddonInfo('id')
@@ -64,19 +65,45 @@ show_intro_message_once(ADDON_NAME, FIRST_RUN_FILE)
 
 # Funzione per rimuovere le cartelle speciali
 def remove_special_folders():
-    # Cartella per Trakt
-    trakt_dir = xbmcvfs.translatePath("special://profile/addon_data/trakt_install")
-    if xbmcvfs.exists(trakt_dir):
-        # Rimuovi ricorsivamente la cartella
-        xbmcvfs.rmdir(trakt_dir, force=True)
-        log(f"Rimossa cartella Trakt: {trakt_dir}", xbmc.LOGINFO)
+    """
+    Rimuove le cartelle speciali e le relative sorgenti da sources.xml
+    per le installazioni temporanee di YouTube e Trakt.
+    """
+    # Configurazione per le installazioni temporanee
+    temp_installs = [
+        {
+            "addon_id": "plugin.video.youtube",
+            "source_name": "YouTube Install",
+            "virtual_path": "special://profile/addon_data/youtube_install/"
+        },
+        {
+            "addon_id": "script.trakt",
+            "source_name": "Trakt Install",
+            "virtual_path": "special://profile/addon_data/trakt_install/"
+        }
+    ]
     
-    # Cartella per YouTube
-    youtube_dir = xbmcvfs.translatePath("special://profile/addon_data/youtube_install")
-    if xbmcvfs.exists(youtube_dir):
-        # Rimuovi ricorsivamente la cartella
-        xbmcvfs.rmdir(youtube_dir, force=True)
-        log(f"Rimossa cartella YouTube: {youtube_dir}", xbmc.LOGINFO)
+    for install in temp_installs:
+        # 1. Rimuovi da sources.xml usando sources_manager
+        fake_repo = {
+            "name": install['source_name'],
+            "url": install['virtual_path']
+        }
+        if sources_manager.remove_source_from_xml(fake_repo):
+            log(f"Rimossa sorgente {install['source_name']} da sources.xml", xbmc.LOGINFO)
+        else:
+            log(f"La sorgente {install['source_name']} non trovata in sources.xml", xbmc.LOGINFO)
+        
+        # 2. Rimuovi cartella fisica
+        dest_dir = xbmcvfs.translatePath(install['virtual_path'])
+        if os.path.exists(dest_dir):
+            try:
+                shutil.rmtree(dest_dir, ignore_errors=True)
+                log(f"Rimossa cartella {install['source_name']}: {dest_dir}", xbmc.LOGINFO)
+            except Exception as e:
+                log(f"Errore rimozione cartella {install['source_name']}: {e}", xbmc.LOGERROR)
+        else:
+            log(f"Cartella {install['source_name']} non trovata: {dest_dir}", xbmc.LOGINFO)
 
 
 class RepoManagerGUI(xbmcgui.WindowXML):
