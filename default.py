@@ -173,7 +173,7 @@ class RepoManagerGUI(xbmcgui.WindowXML):
             if repo_name == 'youtube repo' or repo_name == 'trakt addon repo':
                 # YouTube e Trakt non vengono gestiti come sorgenti normali
                 item.setProperty('checked', "false")
-                item.setProperty('action_label', "Installa")
+                item.setProperty('action_label', "Aggiungi")
             else:
                 installed = is_repo_installed(repo)
                 item.setProperty('checked', "true" if installed else "false")
