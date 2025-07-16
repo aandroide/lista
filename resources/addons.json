@@ -5,7 +5,7 @@
       "name": "Kodinerds repo",
       "description": "Repository contenente addon sviluppati e mantenuti dalla community, come DAZN, DMax, Playlist Loader, Youtube-dl Control e altri.",
       "url": "https://repo.kodinerds.net",
-      "telegram": ""
+      "telegram": "https://www.kodinerds.net/"
     },
     {
       "name": "The Crew repo",
@@ -15,9 +15,9 @@
     },
     {
       "name": "S4Me repo",
-      "description": "Repo per l'addon Stream4Me: ricerca film/serie TV da siti italiani e internazionali.",
+      "description": "Repo per l'addon Stream4Me: ricerca film/serie TV e radio da siti pricipalmente Italiani, occasionalmente sono reperibile anche contenuti in lingua originale.",
       "url": "https://stream4me.github.io/repo/",
-      "telegram": "https://t.me/stream4me_addon"
+      "telegram": "https://github.com/Stream4me/addon/issues"
     },
     {
       "name": "Mandrakodi repo",
@@ -27,7 +27,7 @@
     },
     {
       "name": "WLTV repo",
-      "description": "Repo per l'addon WLTV: personalizzazione liste IPTV dei canali DTT, sezione globale di canali TV e webcam.",
+      "description": "Repo per l'addon WLTV: personalizzazione liste IPTV dei canali DTT, radio e sezione globale di canali TV e webcam.",
       "url": "https://worldlivetv.github.io/repo/",
       "telegram": "https://t.me/WorldLiveTV"
     },
@@ -47,31 +47,31 @@
       "name": "Sandmann79 repo (Amazon VOD)",
       "description": "Repo per l'addon Amazon VOD: accesso alla piattaforma ufficiale tramite account registrato (login richiesto).",
       "url": "https://api.github.com/repos/Sandmann79/xbmc/releases/tags/Repository",
-      "telegram": ""
+      "telegram": "https://github.com/Sandmann79/xbmc/issues"
     },
     {
       "name": "Castagnait repo (Netflix)",
       "description": "Repo per l'addon Netflix: accesso alla piattaforma ufficiale tramite account registrato (login richiesto).",
       "url": "https://castagnait.github.io/repository.castagnait/",
-      "telegram": ""
+      "telegram": "https://github.com/CastagnaIT/plugin.video.netflix/issues"
     },
     {
       "name": "Jurialmunkey repo (TheMovieDb Helper e Skin Artic)",
       "description": "Repo per TheMovieDb Helper e Skin Artic: strumenti per la gestione di librerie multimediali e skin personalizzate.",
       "url": "https://jurialmunkey.github.io/repository.jurialmunkey/",
-      "telegram": ""
+      "telegram": "https://github.com/jurialmunkey
     },
     {
       "name": "Dobbelina repo (Cumination)",
       "description": "Repo per l'addon Cumination: contenuti per adulti da numerosi siti.",
       "url": "https://dobbelina.github.io",
-      "telegram": ""
+      "telegram": "https://github.com/dobbelina/repository.dobbelina/issues"
      },
     {
       "name": "Elementum repo",
-      "description": "Repo per l'addon Elementum: streaming P2P di contenuti video.",
+      "description": "Repo per l'addon Elementum: addon che consente lo streaming o il download di contenuti torrent come video e audio su Kodi.",
       "url": "https://github.com/ElementumOrg/repository.elementumorg/releases/",
-      "telegram": ""
+      "telegram": "https://github.com/elgatito/plugin.video.elementum/issues"
     },
     {
       "name": "Digitalking repo",
@@ -81,7 +81,7 @@
     },
     {
       "name": "Rock Clean repo",
-      "description": "Addon per la pulizia su Kodi.",
+      "description": "Addon per la pulizia e la manutenzione di Kodi, nel caso si abiliti la pulizia automatica è importanete evitare di abilitarla per la sezione Add-on Data per non perdere le cofigurazioni delle skin e degli addons.",
       "url": "http://www.rockodi.com",
       "telegram": ""
     },
@@ -93,15 +93,15 @@
     },
     {
       "name": "Trakt Addon repo",
-      "description": "Scarica l'ultima versione dello script Trakt.",
+      "description": "Scarica l'ultima versione dello script Trakt per Kodi, Trakt.tv è un servizio online che, previa registrazione ed installazione del relativo addon, ti permette di sincronizzare quello che visualizzi o hai precedentemente visualizzato sui vari dispositivi o in questa caso su Kodi.",
       "url": "https://github.com/trakt/script.trakt/releases",
-      "telegram": ""
+      "telegram": "https://github.com/trakt/script.trakt/issues"
     },
     {
       "name": "Slyguy.addons repo",
       "description": "Repository contenente addons sviluppati e mantenuti da Matt Huisman, come Disney+, Pluto TV, Samsung TV Plus, Roku e altri, per alcuni addons è necessario un account con regolare abbonamento.",
       "url": "http://slyguy.uk",
-      "telegram": ""
+      "telegram": "https://github.com/matthuisman/slyguy.addons/issues"
     },
 	{
       "name": "YT Music repo",
