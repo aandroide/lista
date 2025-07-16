@@ -81,8 +81,7 @@ https://aandroide.github.io/repo/.
 
 ## 🔄 Compatibilità
 - Kodi 20+ (testato su Android e Windows)
-- Nessuna modifica diretta a `sources.xml`
-- Supporta aggiornamento dinamico senza riavvio
+- Supporta aggiornamento dinamico ad ogni avvio
 
 ---
 
