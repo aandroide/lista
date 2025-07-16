@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Service Self-Update per Kodi addon: sincronizza i file remoti
+Repo_Addon_installer-Service per Kodi addon: sincronizza i file remoti
 - Esegue sync solo se c'è un nuovo commit
 - Scarica file mancanti o modificati
 - Rimuove file locali non più remoti
@@ -8,17 +8,12 @@ Service Self-Update per Kodi addon: sincronizza i file remoti
 - Pulizia automatica delle installazioni temporanee
 """
 
-import xbmc
-import xbmcaddon
-import xbmcvfs
-import urllib.request
-import json
-import os
-import xbmcgui
-import shutil
+import xbmc, xbmcaddon, xbmcvfs, xbmcgui
+import urllib.request, urllib.error
+import json, os, shutil
 from resources.lib import sources_manager
 
-# Impostazioni addon
+# --- Configurazione Addon ---
 ADDON = xbmcaddon.Addon()
 ADDON_ID = ADDON.getAddonInfo('id')
 ADDON_NAME = ADDON.getAddonInfo('name')
@@ -28,12 +23,11 @@ ICON_PATH = xbmcvfs.translatePath(
 
 # Percorsi
 PROFILE_PATH = xbmcvfs.translatePath(ADDON.getAddonInfo('profile'))
-if not os.path.exists(PROFILE_PATH):
-    os.makedirs(PROFILE_PATH, exist_ok=True)
+os.makedirs(PROFILE_PATH, exist_ok=True)
 LAST_COMMIT_FILE = os.path.join(PROFILE_PATH, 'last_commit.txt')
 ADDON_PATH = xbmcvfs.translatePath(os.path.join('special://home/addons', ADDON_ID))
 
-# File da preservare anche se non presenti su GitHub
+# File da preservare
 IGNORE_FILES = {'.firstrun'}
 
 # Impostazioni GitHub
@@ -41,121 +35,167 @@ github_user = ADDON.getSetting('github_user')
 github_repo = ADDON.getSetting('github_repo')
 github_branch = ADDON.getSetting('github_branch') or 'main'
 
+# --- Helper Generici ---
+def log_info(msg):
+    xbmc.log(f"[Repo_Addon_installer-Service] {msg}", xbmc.LOGINFO)
+
+def log_error(msg):
+    xbmc.log(f"[Repo_Addon_installer-Service] {msg}", xbmc.LOGERROR)
+
+def handle_http_error(e):
+    """Gestione avanzata errori HTTP con notifiche utente"""
+    if e.code == 403:
+        xbmcgui.Dialog().notification(
+            ADDON_NAME,
+            "Limite richieste GitHub raggiunto!",
+            xbmcgui.NOTIFICATION_ERROR,
+            7000
+        )
+        xbmcgui.Dialog().ok(
+            ADDON_NAME,
+            "Errore 403: Accesso negato\n\n"
+            "Hai superato il limite di richieste a GitHub.\n\n"
+            "Soluzioni possibili:\n"
+            "1. Riavvia il modem per ottenere un nuovo IP\n"
+            "2. Prova di nuovo tra 1-2 ore\n"
+            "3. Contatta il provider se il problema persiste\n\n"
+            "GitHub limita le richieste per proteggere i suoi server."
+        )
+    elif e.code == 404:
+        xbmcgui.Dialog().notification(
+            ADDON_NAME,
+            "URL non trovato! Verifica le impostazioni",
+            xbmcgui.NOTIFICATION_ERROR,
+            5000
+        )
+    else:
+        xbmcgui.Dialog().notification(
+            ADDON_NAME,
+            f"Errore {e.code} durante l'accesso a GitHub",
+            xbmcgui.NOTIFICATION_ERROR,
+            5000
+        )
+    return False
+
+def github_api_request(path, timeout=10):
+    """Chiamata centralizzata alle API GitHub con gestione errori avanzata"""
+    url = f"https://api.github.com/repos/{github_user}/{github_repo}{path}"
+    try:
+        resp = urllib.request.urlopen(url, timeout=timeout)
+        if resp.getcode() != 200:
+            log_error(f"API code inaspettato {resp.getcode()} per {url}")
+            return None
+        return json.loads(resp.read().decode('utf-8'))
+    except urllib.error.HTTPError as e:
+        return handle_http_error(e)
+    except Exception as e:
+        log_error(f"richiesta API fallita {url}: {e}")
+    return None
+
+# --- Gestione Commit ---
 def read_last_commit():
+    """Legge l'ultimo commit memorizzato localmente"""
     try:
         if os.path.exists(LAST_COMMIT_FILE):
             with open(LAST_COMMIT_FILE, 'r') as f:
                 return f.read().strip()
     except Exception as e:
-        xbmc.log(f"[ServiceSelfUpdate] Errore lettura ultimo commit: {e}", xbmc.LOGERROR)
+        log_error(f"lettura ultimo commit: {e}")
     return ''
 
 def write_last_commit(sha):
+    """Salva lo SHA del commit corrente"""
     try:
         with open(LAST_COMMIT_FILE, 'w') as f:
             f.write(sha)
     except Exception as e:
-        xbmc.log(f"[ServiceSelfUpdate] Errore scrittura ultimo commit: {e}", xbmc.LOGERROR)
+        log_error(f"scrittura ultimo commit: {e}")
 
+# --- Remote Data ---
 def get_remote_commit():
-    """
-    Restituisce lo SHA dell'ultimo commit sul branch remoto.
-    """
-    api_url = f"https://api.github.com/repos/{github_user}/{github_repo}/commits/{github_branch}"
-    try:
-        with urllib.request.urlopen(api_url, timeout=10) as resp:
-            if resp.getcode() != 200:
-                xbmc.log(f"[ServiceSelfUpdate] Commit API code: {resp.getcode()}", xbmc.LOGERROR)
-                return ''
-            data = json.loads(resp.read().decode('utf-8'))
-            return data.get('sha', '')
-    except Exception as e:
-        xbmc.log(f"[ServiceSelfUpdate] Errore fetch commit: {e}", xbmc.LOGERROR)
-    return ''
+    """Ottiene l'ultimo commit SHA dal ramo remoto"""
+    data = github_api_request(f"/commits/{github_branch}")
+    return data.get('sha', '') if data else ''
 
 def get_remote_file_list():
-    """
-    Restituisce la lista di tutti i file (blob) nel ramo remoto.
-    """
-    api_tree = f"https://api.github.com/repos/{github_user}/{github_repo}/git/trees/{github_branch}?recursive=1"
-    try:
-        with urllib.request.urlopen(api_tree, timeout=10) as resp:
-            if resp.getcode() != 200:
-                xbmc.log(f"[ServiceSelfUpdate] Tree API code: {resp.getcode()}", xbmc.LOGERROR)
-                return []
-            data = json.loads(resp.read().decode('utf-8'))
-            return [item['path'] for item in data.get('tree', []) if item.get('type') == 'blob']
-    except Exception as e:
-        xbmc.log(f"[ServiceSelfUpdate] Errore Tree API: {e}", xbmc.LOGERROR)
-    return []
+    """Ottiene la lista completa dei file dal repository remoto"""
+    data = github_api_request(f"/git/trees/{github_branch}?recursive=1")
+    if not data:
+        return []
+    return [item['path'] for item in data.get('tree', []) if item.get('type') == 'blob']
 
+# --- Sincronizzazione File ---
 def sync_orphan_files(remote_paths):
-    """
-    Rimuove i file locali che non sono più presenti nel repository remoto.
-    """
-    addon_real = ADDON_PATH
-    for root, dirs, files in os.walk(addon_real, topdown=False):
+    """Rimuove i file locali non presenti nel repository remoto"""
+    for root, _, files in os.walk(ADDON_PATH, topdown=False):
         for name in files:
-            fullpath = os.path.join(root, name)
-            relpath = os.path.relpath(fullpath, addon_real).replace('\\', '/')
-            if relpath in IGNORE_FILES:
+            full_path = os.path.join(root, name)
+            rel_path = os.path.relpath(full_path, ADDON_PATH).replace('\\', '/')
+            
+            if rel_path in IGNORE_FILES:
                 continue
-            if relpath not in remote_paths:
+                
+            if rel_path not in remote_paths:
                 try:
-                    os.remove(fullpath)
-                    xbmc.log(f"[ServiceSelfUpdate] Rimosso orphan: {relpath}", xbmc.LOGINFO)
+                    os.remove(full_path)
+                    log_info(f"Rimosso file orfano: {rel_path}")
                 except Exception as e:
-                    xbmc.log(f"[ServiceSelfUpdate] Errore rimozione orphan {relpath}: {e}", xbmc.LOGERROR)
-        if not os.listdir(root):
+                    log_error(f"Errore rimozione file orfano {rel_path}: {e}")
+        
+        # Rimuove cartelle vuote
+        if not os.listdir(root) and root != ADDON_PATH:
             try:
                 os.rmdir(root)
-            except Exception:
-                pass
+                log_info(f"Rimossa cartella vuota: {os.path.relpath(root, ADDON_PATH)}")
+            except Exception as e:
+                log_error(f"Errore rimozione cartella vuota: {e}")
+
+def download_content(rel_path):
+    """Scarica il contenuto di un file dal repository"""
+    url = f"https://raw.githubusercontent.com/{github_user}/{github_repo}/{github_branch}/{rel_path}"
+    try:
+        with urllib.request.urlopen(url, timeout=20) as response:
+            return response.read()
+    except urllib.error.HTTPError as e:
+        handle_http_error(e)
+    except Exception as e:
+        log_error(f"Errore download {rel_path}: {e}")
+    return None
 
 def sync_all(remote_paths):
-    """
-    Sincronizza tutti i file remoti con quelli locali:
-    - Scarica file mancanti o modificati
-    - Poi rimuove gli orfani
-    """
-    base_url = f"https://raw.githubusercontent.com/{github_user}/{github_repo}/{github_branch}"
-    addon_real = ADDON_PATH
-    for rel in remote_paths:
-        phys = os.path.join(addon_real, rel)
-        url = f"{base_url}/{rel}"
-        try:
-            with urllib.request.urlopen(url, timeout=20) as r:
-                content = r.read()
-        except Exception as e:
-            xbmc.log(f"[ServiceSelfUpdate] Errore fetch {rel}: {e}", xbmc.LOGERROR)
+    """Sincronizza tutti i file con il repository remoto"""
+    for rel_path in remote_paths:
+        local_path = os.path.join(ADDON_PATH, rel_path)
+        remote_content = download_content(rel_path)
+        
+        if remote_content is None:
             continue
-        # verifica esistenza e differenze
-        write = True
-        if os.path.exists(phys):
+            
+        # Controlla se il file esiste ed è identico
+        file_exists = os.path.exists(local_path)
+        if file_exists:
             try:
-                with open(phys, 'rb') as f:
-                    if f.read() == content:
-                        write = False
-            except Exception:
-                write = True
-        if write:
-            os.makedirs(os.path.dirname(phys), exist_ok=True)
-            try:
-                with open(phys, 'wb') as f:
-                    f.write(content)
-                xbmc.log(f"[ServiceSelfUpdate] Aggiornato: {rel}", xbmc.LOGINFO)
+                with open(local_path, 'rb') as local_file:
+                    if local_file.read() == remote_content:
+                        continue
             except Exception as e:
-                xbmc.log(f"[ServiceSelfUpdate] Errore scrittura {rel}: {e}", xbmc.LOGERROR)
-    # rimuovi file non più remoti
+                log_error(f"Errore lettura file locale {rel_path}: {e}")
+        
+        # Crea directory se necessario e scrive il file
+        try:
+            os.makedirs(os.path.dirname(local_path), exist_ok=True)
+            with open(local_path, 'wb') as local_file:
+                local_file.write(remote_content)
+            log_info(f"File {'aggiornato' if file_exists else 'scaricato'}: {rel_path}")
+        except Exception as e:
+            log_error(f"Errore scrittura file {rel_path}: {e}")
+    
+    # Rimuove i file orfani
     sync_orphan_files(remote_paths)
 
+# --- Pulizia Origini Temporanee ---
 def cleanup_temp_install_folders():
-    """
-    Rimuove le sorgenti temporanee se gli addon corrispondenti sono installati
-    - Utilizza sources_manager per rimuovere le sorgenti da sources.xml
-    - Elimina le cartelle fisiche con gli zip
-    - Notifica l'utente e richiede riavvio
-    """
+    """Pulizia avanzata delle installazioni temporanee con logging dettagliato"""
     cleaned_something = False
     messages = []
     
@@ -181,49 +221,40 @@ def cleanup_temp_install_folders():
         dest_dir = xbmcvfs.translatePath(install['virtual_path'])
         cleaned_this = False
 
-        # 1. Rimuovi da sources.xml usando sources_manager
-        # Creiamo un finto repo con le informazioni necessarie
+        # Rimuove da sources.xml
         fake_repo = {
             "name": install['source_name'],
             "url": install['virtual_path']
         }
         
         if sources_manager.remove_source_from_xml(fake_repo):
+            msg = f"Rimossa sorgente {install['source_name']} da sources.xml"
+            messages.append(msg)
+            log_info(msg)
             cleaned_this = True
-            log_msg = f"Rimossa sorgente {install['source_name']} da sources.xml"
-            xbmc.log(f"[ServiceSelfUpdate] {log_msg}", xbmc.LOGINFO)
-            messages.append(log_msg)
-        else:
-            log_msg = f"La sorgente {install['source_name']} non trovata in sources.xml"
-            xbmc.log(f"[ServiceSelfUpdate] {log_msg}", xbmc.LOGINFO)
 
-        # 2. Rimuovi cartella fisica
+        # Rimuove cartella fisica
         if os.path.exists(dest_dir):
             try:
                 shutil.rmtree(dest_dir, ignore_errors=True)
+                msg = f"Rimossa cartella {install['source_name']}: {dest_dir}"
+                messages.append(msg)
+                log_info(msg)
                 cleaned_this = True
-                log_msg = f"Rimossa cartella {install['source_name']}: {dest_dir}"
-                xbmc.log(f"[ServiceSelfUpdate] {log_msg}", xbmc.LOGINFO)
-                messages.append(log_msg)
             except Exception as e:
                 error_msg = f"Errore rimozione cartella {install['source_name']}: {e}"
-                xbmc.log(f"[ServiceSelfUpdate] {error_msg}", xbmc.LOGERROR)
                 messages.append(error_msg)
+                log_error(error_msg)
         else:
-            log_msg = f"Cartella {install['source_name']} non trovata: {dest_dir}"
-            xbmc.log(f"[ServiceSelfUpdate] {log_msg}", xbmc.LOGINFO)
+            log_info(f"Cartella non trovata: {dest_dir}")
 
         if cleaned_this:
             cleaned_something = True
 
-    # 3. Notifica e richiedi riavvio
+    # Notifica e richiedi riavvio
     if cleaned_something:
-        xbmc.log("[ServiceSelfUpdate] Pulizia cartelle temporanee completata", xbmc.LOGINFO)
-        
-        # Crea messaggio di riepilogo
-        summary = "Pulizia completata:\n"
-        for msg in messages:
-            summary += f"- {msg}\n"
+        log_info("Pulizia cartelle temporanee completata")
+        summary = "Pulizia completata:\n" + "\n".join(f"- {msg}" for msg in messages)
         
         xbmcgui.Dialog().notification(
             ADDON_NAME,
@@ -234,19 +265,17 @@ def cleanup_temp_install_folders():
         
         if xbmcgui.Dialog().yesno(
             ADDON_NAME,
-            f"{summary}\nRiavviare Kodi per completare la pulizia?",
+            f"{summary}\n\nRiavviare Kodi per completare la pulizia?",
             yeslabel="Riavvia ora",
             nolabel="Più tardi"
         ):
             xbmc.executebuiltin("RestartApp")
 
+# --- Main Service Functions ---
 def check_self_update():
-    """
-    Controlla se c'è un nuovo commit e, in tal caso, sincronizza tutti i file.
-    Notifica solo se ci sono aggiornamenti, mostrando il commit abbreviato e il logo.
-    """
+    """Controlla e applica aggiornamenti dal repository"""
     if not github_user or not github_repo:
-        xbmc.log("[ServiceSelfUpdate] Parametri GitHub mancanti", xbmc.LOGERROR)
+        log_error("Parametri GitHub mancanti nelle impostazioni")
         return
     
     remote_sha = get_remote_commit()
@@ -255,26 +284,37 @@ def check_self_update():
     
     last_sha = read_last_commit()
     if remote_sha == last_sha:
-        xbmc.log("[ServiceSelfUpdate] Nessun aggiornamento disponibile", xbmc.LOGINFO)
+        log_info("Nessun aggiornamento disponibile")
         return
     
-    xbmc.log(f"[ServiceSelfUpdate] Nuovo commit {remote_sha}", xbmc.LOGINFO)
+    log_info(f"Trovato nuovo commit: {remote_sha}")
+    remote_paths = get_remote_file_list()
     
-    # sincronizza
+    if not remote_paths:
+        log_error("Nessun file trovato nel repository remoto")
+        return
+    
     try:
-        remote_paths = get_remote_file_list()
-        if remote_paths:
-            sync_all(remote_paths)
-            write_last_commit(remote_sha)
-            xbmcgui.Dialog().notification(
-                ADDON_NAME,
-                f"Addon aggiornato ({remote_sha[:7]})",
-                ICON_PATH,
-                5000
-            )
+        sync_all(remote_paths)
+        write_last_commit(remote_sha)
+        xbmcgui.Dialog().notification(
+            ADDON_NAME,
+            f"Addon aggiornato ({remote_sha[:7]})",
+            ICON_PATH,
+            5000
+        )
+        log_info("Aggiornamento completato con successo")
     except Exception as e:
-        xbmc.log(f"[ServiceSelfUpdate] Errore sincronizzazione: {e}", xbmc.LOGERROR)
+        log_error(f"Errore durante la sincronizzazione: {e}")
+        xbmcgui.Dialog().notification(
+            ADDON_NAME,
+            "Errore durante l'aggiornamento!",
+            xbmcgui.NOTIFICATION_ERROR,
+            5000
+        )
 
 if __name__ == '__main__':
+    log_info("Servizio avviato")
     check_self_update()
     cleanup_temp_install_folders()
+    log_info("Servizio terminato")
