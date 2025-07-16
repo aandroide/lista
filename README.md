@@ -29,6 +29,13 @@ https://aandroide.github.io/repo/.
 - Stato aggiornato in tempo reale.
 - Nessun riavvio richiesto per aggiornare la GUI.
 
+### 🧩 YouTube e Trakt Addon
+
+- Funzionano **esattamente come gli altri repository**, ma con una differenza:
+- Viene scaricato automaticamente il file `.zip` più recente dalla **pagina GitHub Releases**
+- Il file viene salvato in una cartella dedicata (es. `youtube_install`o 'trakt install') visibile in "Installa da file ZIP"
+- Dopo il riavvio e l’installazione manuale, la cartella viene **rimossa automaticamente**
+
 ### 💬 Supporto Telegram via QR Code
 - Se presente, il link Telegram viene trasformato in **QR code**.
 - In assenza del link, viene mostrata un’immagine alternativa con **logo barrato**.
