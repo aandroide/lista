@@ -105,6 +105,36 @@ def remove_special_folders():
         else:
             log(f"Cartella {install['source_name']} non trovata: {dest_dir}", xbmc.LOGINFO)
 
+# Funzione per mostrare avviso API
+def show_api_warning(repo_name, api_guide_link):
+    """Mostra un avviso sulle API necessarie con QR code"""
+    message = (
+        f"ATTENZIONE: Per utilizzare l'addon {repo_name} è necessario:\n\n"
+        "1. Avere un account Google\n"
+        "2. Creare un progetto su Google Cloud Platform\n"
+        "3. Generare le chiavi API OAuth\n\n"
+        "Senza queste chiavi l'addon NON funzionerà correttamente.\n\n"
+        "Segui le istruzioni complete al link:\n"
+        f"[COLOR=blue]{api_guide_link}[/COLOR]"
+    )
+    
+    # Mostra prima il messaggio testuale
+    if not xbmcgui.Dialog().yesno(
+        "ISTRUZIONI OBBLIGATORIE",
+        message,
+        yeslabel="Ho capito, procedi",
+        nolabel="Annulla"
+    ):
+        return False
+
+    # Poi mostra il QR code a schermo intero
+    qr_path = generate_qr_code(api_guide_link, repo_name)
+    dialog = xbmcgui.Dialog()
+    dialog.textviewer(
+        "SCANSIONA IL QR CODE",
+        "Inquadra il codice con il tuo smartphone per aprire le istruzioni"
+    )
+    return True
 
 class RepoManagerGUI(xbmcgui.WindowXML):
     def __init__(self, *args, **kwargs):
@@ -167,6 +197,7 @@ class RepoManagerGUI(xbmcgui.WindowXML):
                 item.setArt({'icon': icon})
             item.setProperty('description', repo.get('description', ''))
             item.setProperty('telegram', repo.get('telegram', ''))
+            item.setProperty('api_guide', repo.get('api_guide', ''))
             
             # Gestione speciale per YouTube e Trakt
             repo_name = repo.get('name', '').lower()
@@ -191,19 +222,24 @@ class RepoManagerGUI(xbmcgui.WindowXML):
 
         repo     = self.sources[self.selected_index]
         name     = repo.get('name', '')
+        name_lower = name.lower()
         desc     = repo.get('description', '')
         tg_link  = repo.get('telegram', '')
+        api_guide = repo.get('api_guide', '')
 
         self.controls['title'].setLabel(name)
         self.controls['description'].setText(desc)
 
-        if 'youtube repo' in name.lower() or 'yt music repo' in name.lower():
-            self.controls['static_label'].setLabel("Istruzioni per la creazione delle chiavi API Youtube")
+        # Determina il tipo di link da mostrare
+        if 'youtube' in name_lower or 'yt music' in name_lower:
+            self.controls['static_label'].setLabel("Istruzioni per la creazione delle chiavi API")
+            display_link = api_guide or tg_link
         else:
-            self.controls['static_label'].setLabel("Canale di supporto Telegram")
+            self.controls['static_label'].setLabel("Fonte di supporto")
+            display_link = tg_link
 
-        self.controls['link'].setLabel(tg_link or "Nessun link disponibile")
-        qr_path = generate_qr_code(tg_link, name) if tg_link else NO_TELEGRAM_IMG
+        self.controls['link'].setLabel(display_link or "Nessun link disponibile")
+        qr_path = generate_qr_code(display_link, name) if display_link else NO_TELEGRAM_IMG
         self.controls['qr'].setImage(qr_path)
 
     def onAction(self, action):
@@ -244,10 +280,16 @@ class RepoManagerGUI(xbmcgui.WindowXML):
             repo = self.sources[self.selected_index]
             name = repo.get('name', '')
             name_lower = name.lower()
+            tg_link = repo.get('telegram', '')
+            api_guide = repo.get('api_guide', '')
             log(f"Click su repository: {name}", xbmc.LOGINFO)
             
-            # Gestione speciale per YouTube
-            if name_lower == 'youtube repo':
+            # Gestione speciale per YouTube e YT Music
+            if 'youtube' in name_lower or 'yt music' in name_lower:
+                # Mostra prima l'avviso sulle API
+                if not show_api_warning(name, api_guide or tg_link):
+                    return
+                    
                 options = ["Scarica ultima versione Official", "Scarica ultima versione Beta"]
                 choice = xbmcgui.Dialog().select("YouTube Addon repo", options)
                 if choice < 0:
@@ -352,9 +394,14 @@ class RepoManagerGUI(xbmcgui.WindowXML):
         added_special = 0
         for repo in special_repos:
             name_lower = repo.get('name', '').lower()
+            tg_link = repo.get('telegram', '')
+            api_guide = repo.get('api_guide', '')
             
             if name_lower == 'youtube repo':
-                # YouTube richiede scelta tra versione ufficiale/beta
+                # Mostra avviso API per YouTube
+                if not show_api_warning(repo['name'], api_guide or tg_link):
+                    continue
+                    
                 options = ["Scarica ultima versione Official", "Scarica ultima versione Beta"]
                 choice = xbmcgui.Dialog().select("YouTube Addon repo", options)
                 if choice >= 0:
