@@ -105,9 +105,13 @@ def remove_special_folders():
         else:
             log(f"Cartella {install['source_name']} non trovata: {dest_dir}", xbmc.LOGINFO)
 
-# Funzione per mostrare avviso API
+# Funzione per mostrare avviso API con pulsante OK
 def show_api_warning(repo_name, api_guide_link):
-    """Mostra un avviso sulle API necessarie con QR code"""
+    """Mostra un avviso sulle API necessarie con QR code e pulsante OK"""
+    # Crea un dialogo personalizzato
+    dialog = xbmcgui.Dialog()
+    
+    # Messaggio principale
     message = (
         f"ATTENZIONE: Per utilizzare l'addon {repo_name} è necessario:\n\n"
         "1. Avere un account Google\n"
@@ -118,18 +122,33 @@ def show_api_warning(repo_name, api_guide_link):
         f"[COLOR=blue]{api_guide_link}[/COLOR]"
     )
     
-    # Mostra prima il messaggio testuale
-    if not xbmcgui.Dialog().yesno(
+    # Mostra il messaggio iniziale
+    if not dialog.yesno(
         "ISTRUZIONI OBBLIGATORIE",
         message,
-        yeslabel="Ho capito, procedi",
+        yeslabel="Visualizza QR Code",
         nolabel="Annulla"
     ):
         return False
 
-    # Poi mostra il QR code in un dialogo dedicato
+    # Genera e mostra il QR code
     qr_path = generate_qr_code(api_guide_link, repo_name)
     xbmc.executebuiltin('ShowPicture(%s)' % qr_path)
+    
+    # Mostra il pulsante OK per procedere
+    if not dialog.yesno(
+        "QR CODE VISUALIZZATO",
+        "Inquadra il codice con il tuo smartphone per aprire le istruzioni.\n\n"
+        "Premi OK per procedere all'installazione.",
+        yeslabel="OK Procedi",
+        nolabel="Annulla"
+    ):
+        # Chiudi la visualizzazione dell'immagine se l'utente annulla
+        xbmc.executebuiltin('Dialog.Close(1101,true)')
+        return False
+    
+    # Chiudi la visualizzazione dell'immagine prima di procedere
+    xbmc.executebuiltin('Dialog.Close(1101,true)')
     return True
 
 class RepoManagerGUI(xbmcgui.WindowXML):
