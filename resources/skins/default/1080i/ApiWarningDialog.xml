@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<window type="dialog" id="9999">
+    <defaultcontrol>500</defaultcontrol>
+    <coordinates>
+        <system>1</system>
+        <posx>100</posx>
+        <posy>100</posy>
+    </coordinates>
+    <controls>
+        <!-- Background -->
+        <control type="image">
+            <left>0</left>
+            <top>0</top>
+            <width>1280</width>
+            <height>720</height>
+            <texture>background_dialog.png</texture>
+        </control>
+        
+        <!-- Titolo -->
+        <control type="label" id="100">
+            <left>100</left>
+            <top>80</top>
+            <width>1080</width>
+            <height>60</height>
+            <font>font40_title</font>
+            <label>ISTRUZIONI OBBLIGATORIE</label>
+            <align>center</align>
+            <textcolor>FFFFFFFF</textcolor>
+        </control>
+        
+        <!-- Messaggio -->
+        <control type="textbox" id="200">
+            <left>100</left>
+            <top>160</top>
+            <width>1080</width>
+            <height>200</height>
+            <font>font30</font>
+            <textcolor>FFFFFFFF</textcolor>
+            <align>center</align>
+        </control>
+        
+        <!-- QR Code -->
+        <control type="image" id="300">
+            <left>490</left>
+            <top>380</top>
+            <width>300</width>
+            <height>300</height>
+            <aspectratio>keep</aspectratio>
+        </control>
+        
+        <!-- Pulsante Visualizza QR Code -->
+        <control type="button" id="400">
+            <left>340</left>
+            <top>700</top>
+            <width>300</width>
+            <height>50</height>
+            <label>Visualizza QR Code</label>
+            <font>font30</font>
+            <textcolor>FFFFFFFF</textcolor>
+        </control>
+        
+        <!-- Pulsante Ok, Fatto -->
+        <control type="button" id="500">
+            <left>640</left>
+            <top>700</top>
+            <width>300</width>
+            <height>50</height>
+            <label>Ok, Fatto</label>
+            <font>font30</font>
+            <textcolor>FFFFFFFF</textcolor>
+        </control>
+    </controls>
+</window>
