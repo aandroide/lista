@@ -114,26 +114,27 @@ class ApiWarningDialog(xbmcgui.WindowXMLDialog):
         self.confirmed = False
 
     def onInit(self):
-        # Imposta lo sfondo blu scuro
-        self.getControl(1000).setVisible(True)
-        
         # Imposta i controlli
-        self.getControl(100).setLabel("ISTRUZIONI OBBLIGATORIE")
-        self.getControl(100).setTextColor("0xFFFFFFFF")
-        self.getControl(200).setText(
-            f"ATTENZIONE: Per utilizzare l'addon {self.repo_name} è necessario:\n\n"
+        self.getControl(100).setLabel(f"ISTRUZIONI OBBLIGATORIE - {self.repo_name}")
+        
+        # Messaggio principale
+        message = (
+            f"ATTENZIONE: Per utilizzare l'addon [B]{self.repo_name}[/B] è necessario:\n"
             "1. Avere un account Google\n"
             "2. Creare un progetto su Google Cloud Platform\n"
             "3. Generare le chiavi API OAuth\n\n"
             "Senza queste chiavi l'addon NON funzionerà correttamente."
         )
-        self.getControl(200).setTextColor("0xFFFFFFFF")
-        self.getControl(300).setImage(self.qr_path)  # QR code
-        self.getControl(400).setLabel("Visualizza QR Code")
-        self.getControl(400).setTextColor("0xFFFFFFFF")
-        self.getControl(500).setLabel("Ok, Fatto")
-        self.getControl(500).setTextColor("0xFFFFFFFF")
-        self.setFocus(self.getControl(500))  # Focus su "Ok, Fatto"
+        self.getControl(200).setLabel(message)
+        
+        # Imposta il QR code
+        self.getControl(300).setImage(self.qr_path)
+        
+        # Imposta il pulsante chiudi
+        self.getControl(32500).setVisible(True)
+        
+        # Focus sul pulsante "Ok, Fatto"
+        self.setFocus(self.getControl(500))
 
     def onClick(self, controlId):
         if controlId == 400:  # Visualizza QR Code
@@ -141,6 +142,8 @@ class ApiWarningDialog(xbmcgui.WindowXMLDialog):
             xbmc.executebuiltin('ShowPicture(%s)' % self.qr_path)
         elif controlId == 500:  # Ok, Fatto
             self.confirmed = True
+            self.close()
+        elif controlId == 32500:  # Pulsante chiudi
             self.close()
 
     def onAction(self, action):
