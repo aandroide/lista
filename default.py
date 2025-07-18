@@ -127,13 +127,9 @@ def show_api_warning(repo_name, api_guide_link):
     ):
         return False
 
-    # Poi mostra il QR code a schermo intero
+    # Poi mostra il QR code in un dialogo dedicato
     qr_path = generate_qr_code(api_guide_link, repo_name)
-    dialog = xbmcgui.Dialog()
-    dialog.textviewer(
-        "SCANSIONA IL QR CODE",
-        "Inquadra il codice con il tuo smartphone per aprire le istruzioni"
-    )
+    xbmc.executebuiltin('ShowPicture(%s)' % qr_path)
     return True
 
 class RepoManagerGUI(xbmcgui.WindowXML):
