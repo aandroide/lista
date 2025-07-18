@@ -1,4 +1,3 @@
-# File: default.py
 # -*- coding: utf-8 -*-
 
 import xbmc
@@ -105,57 +104,65 @@ def remove_special_folders():
         else:
             log(f"Cartella {install['source_name']} non trovata: {dest_dir}", xbmc.LOGINFO)
 
-# Funzione per mostrare avviso API con QR code e pulsante
-def show_api_warning(repo_name, api_guide_link):
-    """Mostra un avviso sulle API necessarie con QR code e pulsante integrato"""
-    # Creiamo un dialogo personalizzato
-    dialog = xbmcgui.Dialog()
-    
-    # Messaggio principale
-    message = (
-        f"ATTENZIONE: Per utilizzare l'addon {repo_name} è necessario:\n\n"
-        "1. Avere un account Google\n"
-        "2. Creare un progetto su Google Cloud Platform\n"
-        "3. Generare le chiavi API OAuth\n\n"
-        "Senza queste chiavi l'addon NON funzionerà correttamente."
-    )
-    
-    # Mostra il messaggio iniziale
-    if not dialog.yesno(
-        "ISTRUZIONI OBBLIGATORIE",
-        message,
-        yeslabel="Visualizza QR Code",
-        nolabel="Annulla"
-    ):
-        return False
+class ApiWarningDialog(xbmcgui.WindowXMLDialog):
+    """Dialog personalizzato per l'avviso API con QR code integrato"""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.repo_name = kwargs.get('repo_name')
+        self.api_guide_link = kwargs.get('api_guide_link')
+        self.qr_path = kwargs.get('qr_path')
+        self.confirmed = False
 
+    def onInit(self):
+        # Imposta i controlli
+        self.getControl(100).setLabel("ISTRUZIONI OBBLIGATORIE")
+        self.getControl(200).setText(
+            f"ATTENZIONE: Per utilizzare l'addon {self.repo_name} è necessario:\n\n"
+            "1. Avere un account Google\n"
+            "2. Creare un progetto su Google Cloud Platform\n"
+            "3. Generare le chiavi API OAuth\n\n"
+            "Senza queste chiavi l'addon NON funzionerà correttamente."
+        )
+        self.getControl(300).setImage(self.qr_path)  # QR code
+        self.getControl(400).setLabel("Visualizza QR Code")
+        self.getControl(500).setLabel("Ok, Fatto")  # Pulsante modificato
+        self.setFocus(self.getControl(500))  # Focus su "Ok, Fatto"
+
+    def onClick(self, controlId):
+        if controlId == 400:  # Visualizza QR Code
+            # Mostra il QR code a schermo intero
+            xbmc.executebuiltin('ShowPicture(%s)' % self.qr_path)
+        elif controlId == 500:  # Ok, Fatto
+            self.confirmed = True
+            self.close()
+
+    def onAction(self, action):
+        if action.getId() in (xbmcgui.ACTION_NAV_BACK, xbmcgui.ACTION_PREVIOUS_MENU):
+            self.close()
+
+# Funzione per mostrare avviso API con QR code integrato nel dialog
+def show_api_warning(repo_name, api_guide_link):
+    """Mostra un avviso sulle API necessarie con QR code integrato"""
     # Genera il QR code
     qr_path = generate_qr_code(api_guide_link, repo_name)
     
-    # Soluzione semplificata con visualizzazione fullscreen e pulsante separato
-    try:
-        # Mostra il QR code a schermo intero
-        xbmc.executebuiltin('ShowPicture(%s)' % qr_path)
-        
-        # Mostra il pulsante OK per procedere
-        if dialog.yesno(
-            "QR CODE VISUALIZZATO",
-            "Inquadra il codice con il tuo smartphone per aprire le istruzioni.\n\n"
-            "Premi OK per procedere all'installazione.",
-            yeslabel="OK Procedi",
-            nolabel="Annulla"
-        ):
-            # Chiudi la visualizzazione dell'immagine
-            xbmc.executebuiltin('Dialog.Close(1101,true)')
-            return True
-        else:
-            # Chiudi la visualizzazione dell'immagine
-            xbmc.executebuiltin('Dialog.Close(1101,true)')
-            return False
-    except:
-        # Fallback in caso di errore
-        xbmc.executebuiltin('Dialog.Close(1101,true)')
-        return False
+    # Crea e mostra il dialog personalizzato
+    dialog = ApiWarningDialog(
+        "ApiWarningDialog.xml",
+        ADDON_PATH,
+        "default",
+        repo_name=repo_name,
+        api_guide_link=api_guide_link,
+        qr_path=qr_path
+    )
+    dialog.doModal()
+    confirmed = dialog.confirmed
+    del dialog
+    
+    # Chiudi eventuali visualizzazioni di immagini rimaste aperte
+    xbmc.executebuiltin('Dialog.Close(1101,true)')
+    
+    return confirmed
 
 class RepoManagerGUI(xbmcgui.WindowXML):
     def __init__(self, *args, **kwargs):
