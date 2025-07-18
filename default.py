@@ -114,8 +114,12 @@ class ApiWarningDialog(xbmcgui.WindowXMLDialog):
         self.confirmed = False
 
     def onInit(self):
+        # Imposta lo sfondo blu scuro
+        self.getControl(1000).setVisible(True)
+        
         # Imposta i controlli
         self.getControl(100).setLabel("ISTRUZIONI OBBLIGATORIE")
+        self.getControl(100).setTextColor("0xFFFFFFFF")
         self.getControl(200).setText(
             f"ATTENZIONE: Per utilizzare l'addon {self.repo_name} è necessario:\n\n"
             "1. Avere un account Google\n"
@@ -123,9 +127,12 @@ class ApiWarningDialog(xbmcgui.WindowXMLDialog):
             "3. Generare le chiavi API OAuth\n\n"
             "Senza queste chiavi l'addon NON funzionerà correttamente."
         )
+        self.getControl(200).setTextColor("0xFFFFFFFF")
         self.getControl(300).setImage(self.qr_path)  # QR code
         self.getControl(400).setLabel("Visualizza QR Code")
-        self.getControl(500).setLabel("Ok, Fatto")  # Pulsante modificato
+        self.getControl(400).setTextColor("0xFFFFFFFF")
+        self.getControl(500).setLabel("Ok, Fatto")
+        self.getControl(500).setTextColor("0xFFFFFFFF")
         self.setFocus(self.getControl(500))  # Focus su "Ok, Fatto"
 
     def onClick(self, controlId):
