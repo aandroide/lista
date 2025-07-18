@@ -7,13 +7,14 @@
         <posy>100</posy>
     </coordinates>
     <controls>
-        <!-- Background -->
-        <control type="image">
+        <!-- Sfondo blu scuro -->
+        <control type="image" id="1000">
             <left>0</left>
             <top>0</top>
             <width>1280</width>
             <height>720</height>
-            <texture>background_dialog.png</texture>
+            <texture>background.png</texture>
+            <colordiffuse>FF1E3A5F</colordiffuse>  <!-- Blu scuro -->
         </control>
         
         <!-- Titolo -->
@@ -25,7 +26,7 @@
             <font>font40_title</font>
             <label>ISTRUZIONI OBBLIGATORIE</label>
             <align>center</align>
-            <textcolor>FFFFFFFF</textcolor>
+            <textcolor>FFFFFFFF</textcolor>  <!-- Testo bianco -->
         </control>
         
         <!-- Messaggio -->
@@ -35,7 +36,7 @@
             <width>1080</width>
             <height>200</height>
             <font>font30</font>
-            <textcolor>FFFFFFFF</textcolor>
+            <textcolor>FFFFFFFF</textcolor>  <!-- Testo bianco -->
             <align>center</align>
         </control>
         
@@ -56,7 +57,9 @@
             <height>50</height>
             <label>Visualizza QR Code</label>
             <font>font30</font>
-            <textcolor>FFFFFFFF</textcolor>
+            <textcolor>FFFFFFFF</textcolor>  <!-- Testo bianco -->
+            <texturenofocus>button_nofocus.png</texturenofocus>
+            <texturefocus>button_focus.png</texturefocus>
         </control>
         
         <!-- Pulsante Ok, Fatto -->
@@ -67,7 +70,9 @@
             <height>50</height>
             <label>Ok, Fatto</label>
             <font>font30</font>
-            <textcolor>FFFFFFFF</textcolor>
+            <textcolor>FFFFFFFF</textcolor>  <!-- Testo bianco -->
+            <texturenofocus>button_nofocus.png</texturenofocus>
+            <texturefocus>button_focus.png</texturefocus>
         </control>
     </controls>
 </window>
