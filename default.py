@@ -105,10 +105,10 @@ def remove_special_folders():
         else:
             log(f"Cartella {install['source_name']} non trovata: {dest_dir}", xbmc.LOGINFO)
 
-# Funzione per mostrare avviso API con pulsante OK
+# Funzione per mostrare avviso API con QR code e pulsante
 def show_api_warning(repo_name, api_guide_link):
-    """Mostra un avviso sulle API necessarie con QR code e pulsante OK"""
-    # Crea un dialogo personalizzato
+    """Mostra un avviso sulle API necessarie con QR code e pulsante integrato"""
+    # Creiamo un dialogo personalizzato
     dialog = xbmcgui.Dialog()
     
     # Messaggio principale
@@ -117,9 +117,7 @@ def show_api_warning(repo_name, api_guide_link):
         "1. Avere un account Google\n"
         "2. Creare un progetto su Google Cloud Platform\n"
         "3. Generare le chiavi API OAuth\n\n"
-        "Senza queste chiavi l'addon NON funzionerà correttamente.\n\n"
-        "Segui le istruzioni complete al link:\n"
-        f"[COLOR=blue]{api_guide_link}[/COLOR]"
+        "Senza queste chiavi l'addon NON funzionerà correttamente."
     )
     
     # Mostra il messaggio iniziale
@@ -131,24 +129,84 @@ def show_api_warning(repo_name, api_guide_link):
     ):
         return False
 
-    # Genera e mostra il QR code
+    # Genera il QR code
     qr_path = generate_qr_code(api_guide_link, repo_name)
-    xbmc.executebuiltin('ShowPicture(%s)' % qr_path)
     
-    # Mostra il pulsante OK per procedere
-    if not dialog.yesno(
-        "QR CODE VISUALIZZATO",
-        "Inquadra il codice con il tuo smartphone per aprire le istruzioni.\n\n"
-        "Premi OK per procedere all'installazione.",
-        yeslabel="OK Procedi",
-        nolabel="Annulla"
-    ):
-        # Chiudi la visualizzazione dell'immagine se l'utente annulla
-        xbmc.executebuiltin('Dialog.Close(1101,true)')
-        return False
+    # Creiamo un nuovo dialogo con l'immagine e il pulsante
+    class QRDialog(xbmcgui.WindowDialog):
+        def __init__(self, qr_path):
+            self.qr_path = qr_path
+            self.width = 500
+            self.height = 450
+            
+            # Calcola la posizione per centrare il dialogo
+            self.x = (1920 - self.width) // 2
+            self.y = (1080 - self.height) // 2
+            
+            # Sfondo solido (grigio scuro)
+            self.background = xbmcgui.ControlLabel(
+                self.x, self.y, self.width, self.height,
+                "",
+                backgroundColor="0xFF202020"  # ARGB: FF = alfa, 202020 = colore grigio scuro
+            )
+            self.addControl(self.background)
+            
+            # Titolo
+            self.title = xbmcgui.ControlLabel(
+                self.x + 20, self.y + 20, self.width - 40, 40,
+                "Istruzioni API YouTube",
+                font="font13",
+                textColor="0xFFFFFFFF"
+            )
+            self.addControl(self.title)
+            
+            # QR code
+            qr_size = 300
+            self.qr_image = xbmcgui.ControlImage(
+                self.x + (self.width - qr_size) // 2, 
+                self.y + 70, 
+                qr_size, qr_size,
+                qr_path
+            )
+            self.addControl(self.qr_image)
+            
+            # Pulsante OK
+            button_width, button_height = 200, 50
+            self.ok_button = xbmcgui.ControlButton(
+                self.x + (self.width - button_width) // 2,
+                self.y + self.height - button_height - 20,
+                button_width, button_height,
+                "OK Procedi",
+                alignment=2
+            )
+            self.addControl(self.ok_button)
+            
+            # Messaggio
+            self.message = xbmcgui.ControlLabel(
+                self.x + 20, self.y + self.height - 90, self.width - 40, 40,
+                "Scansiona il QR code per le istruzioni",
+                font="font12",
+                textColor="0xFFFFFFFF",
+                alignment=2
+            )
+            self.addControl(self.message)
+            
+            self.setFocus(self.ok_button)
+        
+        def onAction(self, action):
+            if action.getId() in [xbmcgui.ACTION_NAV_BACK, xbmcgui.ACTION_PREVIOUS_MENU]:
+                self.close()
+        
+        def onControl(self, control):
+            if control == self.ok_button:
+                self.close()
     
-    # Chiudi la visualizzazione dell'immagine prima di procedere
-    xbmc.executebuiltin('Dialog.Close(1101,true)')
+    # Mostra il dialogo personalizzato
+    qr_dialog = QRDialog(qr_path)
+    qr_dialog.doModal()
+    
+    # Pulizia
+    del qr_dialog
     return True
 
 class RepoManagerGUI(xbmcgui.WindowXML):
