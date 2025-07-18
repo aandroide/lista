@@ -1,78 +1,122 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <window type="dialog" id="9999">
     <defaultcontrol>500</defaultcontrol>
-    <coordinates>
-        <system>1</system>
-        <posx>100</posx>
-        <posy>100</posy>
-    </coordinates>
+    <depth>0.40</depth>
+    
+    <!-- Animazioni -->
+    <animation type="WindowOpen" reversible="false">
+        <effect type="zoom" start="80" end="100" center="50%,50%" delay="160" tween="back" time="240"/>
+        <effect type="fade" delay="160" end="100" time="240"/>
+    </animation>
+    <animation type="WindowClose" reversible="false">
+        <effect type="zoom" start="100" end="80" center="50%,50%" easing="in" tween="back" time="240"/>
+        <effect type="fade" start="100" end="0" time="240"/>
+    </animation>
+    
     <controls>
-        <!-- Sfondo blu scuro -->
+        <!-- Sfondo scuro -->
         <control type="image" id="1000">
             <left>0</left>
             <top>0</top>
             <width>1280</width>
             <height>720</height>
-            <texture>background.png</texture>
-            <colordiffuse>FF1E3A5F</colordiffuse>  <!-- Blu scuro -->
+            <texture colordiffuse="FF1E3A5F">common/white.png</texture>
         </control>
         
-        <!-- Titolo -->
+        <!-- Barra del titolo -->
+        <control type="image" id="1100">
+            <left>0</left>
+            <top>0</top>
+            <width>1280</width>
+            <height>50</height>
+            <texture colordiffuse="FF0A1F3A">common/white.png</texture>
+        </control>
+        
+        <!-- Titolo finestra -->
         <control type="label" id="100">
-            <left>100</left>
-            <top>80</top>
-            <width>1080</width>
-            <height>60</height>
+            <left>50</left>
+            <top>10</top>
+            <width>1180</width>
+            <height>40</height>
             <font>font40_title</font>
             <label>ISTRUZIONI OBBLIGATORIE</label>
-            <align>center</align>
-            <textcolor>FFFFFFFF</textcolor>  <!-- Testo bianco -->
+            <textcolor>FFFFFFFF</textcolor>
+            <align>left</align>
         </control>
         
-        <!-- Messaggio -->
-        <control type="textbox" id="200">
-            <left>100</left>
-            <top>160</top>
-            <width>1080</width>
-            <height>200</height>
-            <font>font30</font>
-            <textcolor>FFFFFFFF</textcolor>  <!-- Testo bianco -->
-            <align>center</align>
+        <!-- Pulsante chiudi -->
+        <control type="button" id="32500">
+            <left>1210</left>
+            <top>10</top>
+            <width>32</width>
+            <height>32</height>
+            <texturefocus colordiffuse="FF12A0C7">common/close.png</texturefocus>
+            <texturenofocus colordiffuse="EEFFFFFF">common/close.png</texturenofocus>
         </control>
         
-        <!-- QR Code -->
-        <control type="image" id="300">
-            <left>490</left>
-            <top>380</top>
-            <width>300</width>
-            <height>300</height>
-            <aspectratio>keep</aspectratio>
-        </control>
-        
-        <!-- Pulsante Visualizza QR Code -->
-        <control type="button" id="400">
-            <left>340</left>
-            <top>700</top>
-            <width>300</width>
-            <height>50</height>
-            <label>Visualizza QR Code</label>
-            <font>font30</font>
-            <textcolor>FFFFFFFF</textcolor>  <!-- Testo bianco -->
-            <texturenofocus>button_nofocus.png</texturenofocus>
-            <texturefocus>button_focus.png</texturefocus>
-        </control>
-        
-        <!-- Pulsante Ok, Fatto -->
-        <control type="button" id="500">
-            <left>640</left>
-            <top>700</top>
-            <width>300</width>
-            <height>50</height>
-            <label>Ok, Fatto</label>
-            <font>font30</font>
-            <textcolor>FFFFFFFF</textcolor>  <!-- Testo bianco -->
-            <texturenofocus>button_nofocus.png</texturenofocus>
-            <texturefocus>button_focus.png</texturefocus>
+        <!-- Contenuto principale -->
+        <control type="group" id="2000">
+            <left>50</left>
+            <top>70</top>
+            <width>1180</width>
+            <height>580</height>
+            
+            <!-- Messaggio -->
+            <control type="label" id="200">
+                <left>0</left>
+                <top>0</top>
+                <width>1180</width>
+                <height>150</height>
+                <font>font30</font>
+                <textcolor>FFFFFFFF</textcolor>
+            </control>
+            
+            <!-- QR Code -->
+            <control type="image" id="300">
+                <left>440</left>
+                <top>160</top>
+                <width>300</width>
+                <height>300</height>
+                <aspectratio>keep</aspectratio>
+            </control>
+            
+            <!-- Etichetta QR Code -->
+            <control type="label" id="310">
+                <left>440</left>
+                <top>470</top>
+                <width>300</width>
+                <height>30</height>
+                <font>font22</font>
+                <textcolor>FFAAAAAA</textcolor>
+                <label>Inquadra con il tuo smartphone</label>
+                <align>center</align>
+            </control>
+            
+            <!-- Pulsante Visualizza QR Code -->
+            <control type="button" id="400">
+                <left>340</left>
+                <top>520</top>
+                <width>300</width>
+                <height>50</height>
+                <label>Visualizza QR Code</label>
+                <font>font30</font>
+                <textcolor>FFFFFFFF</textcolor>
+                <texturenofocus>common/button_nofocus.png</texturenofocus>
+                <texturefocus>common/button_focus.png</texturefocus>
+            </control>
+            
+            <!-- Pulsante Ok, Fatto -->
+            <control type="button" id="500">
+                <left>640</left>
+                <top>520</top>
+                <width>300</width>
+                <height>50</height>
+                <label>Ok, Fatto</label>
+                <font>font30</font>
+                <textcolor>FFFFFFFF</textcolor>
+                <texturenofocus>common/button_nofocus.png</texturenofocus>
+                <texturefocus>common/button_focus.png</texturefocus>
+            </control>
         </control>
     </controls>
 </window>
