@@ -114,27 +114,24 @@ class ApiWarningDialog(xbmcgui.WindowXMLDialog):
         self.confirmed = False
 
     def onInit(self):
-        # Imposta i controlli
-        self.getControl(100).setLabel(f"ISTRUZIONI OBBLIGATORIE - {self.repo_name}")
+        # Imposta il titolo
+        self.setProperty("repo_name", self.repo_name)
         
         # Messaggio principale
         message = (
-            f"ATTENZIONE: Per utilizzare l'addon [B]{self.repo_name}[/B] è necessario:\n"
+            f"Per utilizzare l'addon [B]{self.repo_name}[/B]:\n\n"
             "1. Avere un account Google\n"
             "2. Creare un progetto su Google Cloud Platform\n"
             "3. Generare le chiavi API OAuth\n\n"
-            "Senza queste chiavi l'addon NON funzionerà correttamente."
+            "[COLOR=red]Senza queste chiavi l'addon NON funzionerà![/COLOR]"
         )
-        self.getControl(200).setLabel(message)
+        self.getControl(200).setText(message)
         
         # Imposta il QR code
         self.getControl(300).setImage(self.qr_path)
         
-        # Imposta il pulsante chiudi
-        self.getControl(32500).setVisible(True)
-        
-        # Focus sul pulsante "Ok, Fatto"
-        self.setFocus(self.getControl(500))
+        # Focus sul pulsante "Visualizza QR Code"
+        self.setFocus(self.getControl(400))
 
     def onClick(self, controlId):
         if controlId == 400:  # Visualizza QR Code
@@ -143,16 +140,14 @@ class ApiWarningDialog(xbmcgui.WindowXMLDialog):
         elif controlId == 500:  # Ok, Fatto
             self.confirmed = True
             self.close()
-        elif controlId == 32500:  # Pulsante chiudi
-            self.close()
 
     def onAction(self, action):
         if action.getId() in (xbmcgui.ACTION_NAV_BACK, xbmcgui.ACTION_PREVIOUS_MENU):
             self.close()
 
-# Funzione per mostrare avviso API con QR code integrato nel dialog
+# Funzione per mostrare avviso API con QR code
 def show_api_warning(repo_name, api_guide_link):
-    """Mostra un avviso sulle API necessarie con QR code integrato"""
+    """Mostra un avviso sulle API necessarie con QR code"""
     # Genera il QR code
     qr_path = generate_qr_code(api_guide_link, repo_name)
     
