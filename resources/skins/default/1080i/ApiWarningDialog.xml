@@ -23,7 +23,7 @@
             <height>3240</height>
             <animation effect="fade" start="0" end="100" time="300">WindowOpen</animation>
             <animation effect="fade" start="100" end="0" time="200">WindowClose</animation>
-            <texture colordiffuse="C2FFFFFF">common/black.png</texture>
+            <texture colordiffuse="C2FFFFFF">black.png</texture>
         </control>
         
         <!-- Contenitore principale -->
@@ -32,7 +32,7 @@
             <top>0</top>
             <width>915</width>
             <height>380</height>
-            <texture border="2">common/dialog_bg.png</texture>
+            <texture border="2">dialog_bg.png</texture>
         </control>
         
         <!-- Barra del titolo -->
@@ -41,7 +41,7 @@
             <top>0</top>
             <width>915</width>
             <height>70</height>
-            <texture colordiffuse="FF12B2E7" border="2">common/white.png</texture>
+            <texture colordiffuse="FF12B2E7" border="2">white.png</texture>
         </control>
         
         <!-- Titolo finestra -->
@@ -93,8 +93,8 @@
             <label>Visualizza QR Code</label>
             <align>center</align>
             <aligny>center</aligny>
-            <texturefocus border="40" colordiffuse="FF12B2E7">common/button_focus.png</texturefocus>
-            <texturenofocus border="40">common/button_nofocus.png</texturenofocus>
+            <texturefocus border="40" colordiffuse="FF12B2E7">button_focus.png</texturefocus>
+            <texturenofocus border="40">button_nofocus.png</texturenofocus>
         </control>
         
         <!-- Pulsante Ok, Fatto -->
@@ -109,8 +109,8 @@
             <label>Ok, Fatto</label>
             <align>center</align>
             <aligny>center</aligny>
-            <texturefocus border="40" colordiffuse="FF12B2E7">common/button_focus.png</texturefocus>
-            <texturenofocus border="40">common/button_nofocus.png</texturenofocus>
+            <texturefocus border="40" colordiffuse="FF12B2E7">button_focus.png</texturefocus>
+            <texturenofocus border="40">button_nofocus.png</texturenofocus>
         </control>
     </controls>
 </window>
