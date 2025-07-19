@@ -40,56 +40,32 @@
             <texture>white.png</texture>
         </control>
         
-        <!-- Contenitore principale -->
+        <!-- Contenitore principale con scroll -->
         <control type="group">
             <left>0</left>
             <top>70</top>
             <width>1920</width>
             <height>1010</height>
             
-            <!-- QR Code -->
-            <control type="image" id="300">
-                <left>560</left>
-                <top>100</top>
-                <width>300</width>
-                <height>300</height>
-                <aspectratio>keep</aspectratio>
-            </control>
-            
-            <!-- Messaggio di istruzioni -->
+            <!-- Area testo scorrevole -->
             <control type="textbox" id="200">
-                <left>460</left>
-                <top>420</top>
-                <width>1000</width>
-                <height>300</height>
+                <left>20</left>
+                <top>0</top>
+                <width>1880</width>
+                <height>1010</height>
                 <font>font30</font>
                 <textcolor>FFFFFFFF</textcolor>
-                <align>center</align>
+                <align>left</align>
+                <pagecontrol>201</pagecontrol>
             </control>
             
-            <!-- Etichetta QR Code -->
-            <control type="label">
-                <left>560</left>
-                <top>420</top>
-                <width>300</width>
-                <height>30</height>
-                <font>font22</font>
-                <textcolor>FFAAAAAA</textcolor>
-                <label>Inquadra con il tuo smartphone</label>
-                <align>center</align>
-            </control>
-            
-            <!-- Pulsante Visualizza QR Code -->
-            <control type="button" id="400">
-                <left>560</left>
-                <top>500</top>
-                <width>300</width>
-                <height>50</height>
-                <label>Visualizza QR Code</label>
-                <font>font30</font>
-                <textcolor>FFFFFFFF</textcolor>
-                <texturenofocus>button_nofocus.png</texturenofocus>
-                <texturefocus>button_focus.png</texturefocus>
+            <!-- Scrollbar -->
+            <control type="scrollbar" id="201">
+                <left>1900</left>
+                <top>0</top>
+                <width>20</width>
+                <height>1010</height>
+                <orientation>vertical</orientation>
             </control>
         </control>
     </controls>
