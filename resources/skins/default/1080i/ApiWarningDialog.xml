@@ -70,10 +70,10 @@
             <textcolor>FFFFFFFF</textcolor>
         </control>
         
-        <!-- Pulsante Visualizza QR Code -->
+        <!-- Pulsante Visualizza QR Code - MODIFICATO: top da 310 a 330 -->
         <control type="button" id="400">
             <left>360</left>
-            <top>310</top>
+            <top>330</top>  <!-- Aumentato di 20px per più spazio -->
             <width>250</width>
             <height>50</height>
             <font>font12_title</font>
@@ -86,10 +86,10 @@
             <texturenofocus border="40">button_nofocus.png</texturenofocus>
         </control>
         
-        <!-- Pulsante Ok, Fatto -->
+        <!-- Pulsante Ok, Fatto - MODIFICATO: top da 310 a 330 -->
         <control type="button" id="500">
             <left>620</left>
-            <top>310</top>
+            <top>330</top>  <!-- Aumentato di 20px per più spazio -->
             <width>250</width>
             <height>50</height>
             <font>font12_title</font>
