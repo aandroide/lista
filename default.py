@@ -117,27 +117,25 @@ class ApiWarningDialog(xbmcgui.WindowXMLDialog):
         # Imposta il titolo
         self.setProperty("repo_name", self.repo_name)
         
-        # Messaggio principale - MODIFICATO: messaggio rosso come punto 4
         message = (
-            f"Per utilizzare l'addon [B]{self.repo_name}[/B]:\n\n"
-            "1. Avere un account Google\n"
-            "2. Creare un progetto su Google Cloud Platform\n"
-            "3. Generare le chiavi API OAuth\n"
-            "4. [COLOR=red]Senza queste chiavi l'addon NON funzionerà![/COLOR]"
+            f"Per il corretto funzionamento dell'addon [B]{self.repo_name} è necessario[/B]:\n\n"
+            "1. Essere in possesso/creare un account Google\n"
+            "2. Seguire la guida per la creazione delle chiavi API\n"
+            "3. Essere consapevoli che in assenza di un account Google e la creazione delle relative API l'addon avrà funzionalità limitate\n"
         )
         self.getControl(200).setText(message)
         
         # Imposta il QR code
         self.getControl(300).setImage(self.qr_path)
         
-        # Focus sul pulsante "Visualizza QR Code"
+        # Focus sul pulsante "Visualizza QR Code/link"
         self.setFocus(self.getControl(400))
 
     def onClick(self, controlId):
         if controlId == 400:  # Visualizza QR Code
             # Mostra il QR code a schermo intero
             xbmc.executebuiltin('ShowPicture(%s)' % self.qr_path)
-        elif controlId == 500:  # Ok, Fatto
+        elif controlId == 500:  # Ho preso visione, continua.
             self.confirmed = True
             self.close()
 
