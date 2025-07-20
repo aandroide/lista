@@ -15,12 +15,12 @@
             <effect type="fade" start="100" end="0" time="240" />
         </animation>
         
-        <!-- Contenitore principale (dialog) -->
+        <!-- Contenitore principale (dialog) - Altezza aumentata -->
         <control type="image">
             <left>0</left>
             <top>0</top>
             <width>915</width>
-            <height>380</height>
+            <height>430</height>  <!-- Aumentata da 380 a 430 -->
             <texture border="2">dialog_bg.png</texture>
         </control>
         
@@ -57,12 +57,12 @@
             <aspectratio aligny="center" align="center">keep</aspectratio>
         </control>
         
-        <!-- Messaggio di istruzioni -->
+        <!-- Messaggio di istruzioni - Altezza aumentata -->
         <control type="textbox" id="200">
             <left>360</left>
             <top>85</top>
             <width>545</width>
-            <height>300</height>
+            <height>280</height>  <!-- Aumentata da 300 a 280 -->
             <font>font12_title</font>
             <align>left</align>
             <aligny>top</aligny>
@@ -70,10 +70,10 @@
             <textcolor>FFFFFFFF</textcolor>
         </control>
         
-        <!-- Pulsante Visualizza QR Code - MODIFICATO: top da 310 a 330 -->
+        <!-- Pulsanti spostati più in basso -->
         <control type="button" id="400">
             <left>360</left>
-            <top>330</top>  <!-- Aumentato di 20px per più spazio -->
+            <top>370</top>  <!-- Aumentato da 330 a 370 -->
             <width>250</width>
             <height>50</height>
             <font>font12_title</font>
@@ -86,10 +86,9 @@
             <texturenofocus border="40">button_nofocus.png</texturenofocus>
         </control>
         
-        <!-- Pulsante  Ho preso visione, continua MODIFICATO: top da 310 a 330 -->
         <control type="button" id="500">
             <left>620</left>
-            <top>330</top>  <!-- Aumentato di 20px per più spazio -->
+            <top>370</top>  <!-- Aumentato da 330 a 370 -->
             <width>250</width>
             <height>50</height>
             <font>font12_title</font>
