@@ -117,13 +117,13 @@ class ApiWarningDialog(xbmcgui.WindowXMLDialog):
         # Imposta il titolo
         self.setProperty("repo_name", self.repo_name)
         
-        # Messaggio principale
+        # Messaggio principale - MODIFICATO: messaggio rosso come punto 4
         message = (
             f"Per utilizzare l'addon [B]{self.repo_name}[/B]:\n\n"
             "1. Avere un account Google\n"
             "2. Creare un progetto su Google Cloud Platform\n"
-            "3. Generare le chiavi API OAuth\n\n"
-            "[COLOR=red]Senza queste chiavi l'addon NON funzionerà![/COLOR]"
+            "3. Generare le chiavi API OAuth\n"
+            "4. [COLOR=red]Senza queste chiavi l'addon NON funzionerà![/COLOR]"
         )
         self.getControl(200).setText(message)
         
