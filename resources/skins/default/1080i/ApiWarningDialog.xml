@@ -15,12 +15,12 @@
             <effect type="fade" start="100" end="0" time="240" />
         </animation>
         
-        <!-- Contenitore principale (dialog) - Altezza aumentata -->
+        <!-- Contenitore principale (dialog) -->
         <control type="image">
             <left>0</left>
             <top>0</top>
-            <width>915</width>
-            <height>430</height>  <!-- Aumentata da 380 a 430 -->
+            <width>950</width>
+            <height>500</height>
             <texture border="2">dialog_bg.png</texture>
         </control>
         
@@ -28,7 +28,7 @@
         <control type="image">
             <left>0</left>
             <top>0</top>
-            <width>915</width>
+            <width>950</width>
             <height>70</height>
             <texture colordiffuse="FF12B2E7" border="2">white.png</texture>
         </control>
@@ -38,7 +38,7 @@
             <textoffsetx>70</textoffsetx>
             <left>0</left>
             <top>0</top>
-            <width>915</width>
+            <width>950</width>
             <height>70</height>
             <font>font20_title</font>
             <label>LEGGERE ATTENTAMENTE PRIMA DI CONTINUARE</label>
@@ -51,18 +51,18 @@
         <!-- QR Code -->
         <control type="image" id="300">
             <left>30</left>
-            <top>75</top>
+            <top>85</top>
             <width>300</width>
             <height>300</height>
             <aspectratio aligny="center" align="center">keep</aspectratio>
         </control>
         
-        <!-- Messaggio di istruzioni - Altezza aumentata -->
+        <!-- Messaggio di istruzioni -->
         <control type="textbox" id="200">
-            <left>360</left>
+            <left>350</left>
             <top>85</top>
-            <width>545</width>
-            <height>280</height>  <!-- Aumentata da 300 a 280 -->
+            <width>580</width>
+            <height>330</height>
             <font>font12_title</font>
             <align>left</align>
             <aligny>top</aligny>
@@ -70,11 +70,11 @@
             <textcolor>FFFFFFFF</textcolor>
         </control>
         
-        <!-- Pulsanti spostati più in basso -->
+        <!-- Pulsante Visualizza QR Code -->
         <control type="button" id="400">
-            <left>360</left>
-            <top>370</top>  <!-- Aumentato da 330 a 370 -->
-            <width>250</width>
+            <left>350</left>
+            <top>430</top>
+            <width>300</width>
             <height>50</height>
             <font>font12_title</font>
             <textcolor>FFFFFFFF</textcolor>
@@ -82,14 +82,15 @@
             <label>Visualizza QR Code/Link</label>
             <align>center</align>
             <aligny>center</aligny>
-            <texturefocus border="40" colordiffuse="FF12B2E7">button_focus.png</texturefocus>
-            <texturenofocus border="40">button_nofocus.png</texturenofocus>
+            <texturefocus border="40" colordiffuse="FF12B2E7">button-focus.png</texturefocus>
+            <texturenofocus border="40">button-nofocus.png</texturenofocus>
         </control>
         
+        <!-- Pulsante Ho preso visione, continua -->
         <control type="button" id="500">
-            <left>620</left>
-            <top>370</top>  <!-- Aumentato da 330 a 370 -->
-            <width>250</width>
+            <left>670</left>
+            <top>430</top>
+            <width>300</width>
             <height>50</height>
             <font>font12_title</font>
             <textcolor>FFFFFFFF</textcolor>
@@ -97,8 +98,8 @@
             <label>Ho preso visione, continua.</label>
             <align>center</align>
             <aligny>center</aligny>
-            <texturefocus border="40" colordiffuse="FF12B2E7">button_focus.png</texturefocus>
-            <texturenofocus border="40">button_nofocus.png</texturenofocus>
+            <texturefocus border="40" colordiffuse="FF12B2E7">button-focus.png</texturefocus>
+            <texturenofocus border="40">button-nofocus.png</texturenofocus>
         </control>
     </controls>
 </window>
