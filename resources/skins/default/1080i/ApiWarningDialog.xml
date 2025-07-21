@@ -55,21 +55,7 @@
             <height>300</height>
             <aspectratio>keep</aspectratio>
         </control>
-
-        <!-- Link sotto QR (senza "Link:" e larghezza aumentata) -->
-        <control type="label" id="350">
-            <left>40</left>
-            <top>405</top>
-            <width>460</width>
-            <height>30</height>
-            <font>font12</font>
-            <label>https://github.com/anxdpanic/plugin.video.youtube/issues/1095</label>
-            <textcolor>FFFFFFFF</textcolor>
-            <shadowcolor>FF000000</shadowcolor>
-            <align>center</align>
-            <aligny>center</aligny>
-        </control>
-
+        
         <!-- Testo descrizione -->
         <control type="textbox" id="200">
             <left>400</left>
