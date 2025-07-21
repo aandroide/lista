@@ -51,8 +51,8 @@
         <control type="image" id="300">
             <left>40</left>
             <top>95</top>
-            <width>380</width>
-            <height>380</height>
+            <width>400</width>
+            <height>400</height>
             <aspectratio>keep</aspectratio>
         </control>
         
