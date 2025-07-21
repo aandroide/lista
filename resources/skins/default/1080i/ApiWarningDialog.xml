@@ -5,6 +5,7 @@
         <top>255</top>
     </coordinates>
     <controls>
+
         <!-- Animazioni -->
         <animation type="WindowOpen" reversible="false">
             <effect type="zoom" start="80" end="100" center="960,540" delay="160" tween="back" time="240" />
@@ -47,20 +48,21 @@
             <shadowcolor>FF000000</shadowcolor>
         </control>
 
-        <!-- QR Code -->
+        <!-- Immagine statica QR con link -->
         <control type="image" id="300">
             <left>40</left>
             <top>95</top>
-            <width>450</width>
-            <height>450</height>
+            <width>360</width>
+            <height>360</height>
             <aspectratio>keep</aspectratio>
+            <texture>api.png</texture>
         </control>
-        
+
         <!-- Testo descrizione -->
         <control type="textbox" id="200">
-            <left>400</left>
+            <left>440</left>
             <top>95</top>
-            <width>750</width>
+            <width>720</width>
             <height>360</height>
             <font>font12_title</font>
             <align>left</align>
@@ -71,34 +73,37 @@
 
         <!-- Pulsante Visualizza QR -->
         <control type="button" id="400">
-            <left>400</left>
-            <top>490</top>
+            <left>440</left>
+            <top>520</top>
             <width>320</width>
             <height>50</height>
             <font>font12_title</font>
             <label>Visualizza QR Code/Link</label>
             <align>center</align>
             <aligny>center</aligny>
+            <textoffsetx>0</textoffsetx>
+            <textoffsety>0</textoffsety>
             <textcolor>FFFFFFFF</textcolor>
-            <textoffsetx>10</textoffsetx>
             <texturefocus border="40" colordiffuse="FF12B2E7">button-focus.png</texturefocus>
             <texturenofocus border="40">button-nofocus.png</texturenofocus>
         </control>
 
         <!-- Pulsante Conferma -->
         <control type="button" id="500">
-            <left>740</left>
-            <top>490</top>
+            <left>790</left>
+            <top>520</top>
             <width>320</width>
             <height>50</height>
             <font>font12_title</font>
             <label>Ho preso visione, continua.</label>
             <align>center</align>
             <aligny>center</aligny>
+            <textoffsetx>0</textoffsetx>
+            <textoffsety>0</textoffsety>
             <textcolor>FFFFFFFF</textcolor>
-            <textoffsetx>10</textoffsetx>
             <texturefocus border="40" colordiffuse="FF12B2E7">button-focus.png</texturefocus>
             <texturenofocus border="40">button-nofocus.png</texturenofocus>
         </control>
+
     </controls>
 </window>
