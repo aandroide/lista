@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <window type="dialog">
   <coordinates>
-    <left>390</left>
+    <left>360</left>
     <top>255</top>
   </coordinates>
   <controls>
 
-    <!-- Animazioni apertura/chiusura -->
+    <!-- Animazioni -->
     <animation type="WindowOpen" reversible="false">
       <effect type="zoom" start="80" end="100" center="960,540" delay="160" tween="back" time="240" />
       <effect type="fade" delay="160" end="100" time="240" />
@@ -16,11 +16,11 @@
       <effect type="fade" start="100" end="0" time="240" />
     </animation>
 
-    <!-- Sfondo dialog -->
+    <!-- Sfondo -->
     <control type="image">
       <left>0</left>
       <top>0</top>
-      <width>1200</width>
+      <width>1260</width>
       <height>620</height>
       <texture border="2">dialog_bg.png</texture>
     </control>
@@ -29,16 +29,16 @@
     <control type="image">
       <left>0</left>
       <top>0</top>
-      <width>1200</width>
+      <width>1260</width>
       <height>80</height>
       <texture colordiffuse="FF12B2E7" border="2">white.png</texture>
     </control>
 
-    <!-- Titolo centrale -->
+    <!-- Titolo -->
     <control type="label">
       <left>0</left>
       <top>0</top>
-      <width>1200</width>
+      <width>1260</width>
       <height>80</height>
       <font>font30_title</font>
       <label>LEGGERE ATTENTAMENTE PRIMA DI CONTINUARE</label>
@@ -48,36 +48,36 @@
       <shadowcolor>FF000000</shadowcolor>
     </control>
 
-    <!-- QR code statico (api.png) -->
+    <!-- Immagine con QR + link (statica) -->
     <control type="image" id="300">
-      <left>40</left>
-      <top>95</top>
+      <left>60</left>
+      <top>100</top>
       <width>420</width>
       <height>420</height>
       <aspectratio>keep</aspectratio>
       <texture>api.png</texture>
     </control>
 
-    <!-- Testo descrizione a destra -->
+    <!-- Testo descrizione -->
     <control type="textbox" id="200">
-      <left>480</left>
-      <top>95</top>
-      <width>680</width>
+      <left>520</left>
+      <top>100</top>
+      <width>700</width>
       <height>360</height>
-      <font>font12_title</font>
+      <font>font13</font>
       <align>left</align>
       <aligny>top</aligny>
       <textcolor>FFFFFFFF</textcolor>
       <shadowcolor>FF000000</shadowcolor>
     </control>
 
-    <!-- Pulsante "Visualizza QR Code/Link" -->
+    <!-- Pulsante Visualizza -->
     <control type="button" id="400">
-      <left>480</left>
-      <top>520</top>
+      <left>520</left>
+      <top>510</top>
       <width>360</width>
       <height>60</height>
-      <font>font14_title</font>
+      <font>font13_title</font>
       <label>Visualizza QR Code/Link</label>
       <align>center</align>
       <aligny>center</aligny>
@@ -88,13 +88,13 @@
       <texturenofocus border="40">button-nofocus.png</texturenofocus>
     </control>
 
-    <!-- Pulsante "Ho preso visione, continua." -->
+    <!-- Pulsante Conferma -->
     <control type="button" id="500">
-      <left>860</left>
-      <top>520</top>
+      <left>900</left>
+      <top>510</top>
       <width>300</width>
       <height>60</height>
-      <font>font14_title</font>
+      <font>font13_title</font>
       <label>Ho preso visione, continua.</label>
       <align>center</align>
       <aligny>center</aligny>
