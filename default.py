@@ -125,15 +125,14 @@ class ApiWarningDialog(xbmcgui.WindowXMLDialog):
         )
         self.getControl(200).setText(message)
         
-        # Imposta il QR code
+        # Imposta il QR code statico
         self.getControl(300).setImage(self.qr_path)
         
         # Focus sul pulsante "Visualizza QR Code/link"
         self.setFocus(self.getControl(400))
 
     def onClick(self, controlId):
-        if controlId == 400:  # Visualizza QR Code
-            # Mostra il QR code a schermo intero
+        if controlId == 400:  # Visualizza QR Code a schermo intero
             xbmc.executebuiltin('ShowPicture(%s)' % self.qr_path)
         elif controlId == 500:  # Ho preso visione, continua.
             self.confirmed = True
@@ -143,11 +142,11 @@ class ApiWarningDialog(xbmcgui.WindowXMLDialog):
         if action.getId() in (xbmcgui.ACTION_NAV_BACK, xbmcgui.ACTION_PREVIOUS_MENU):
             self.close()
 
-# Funzione per mostrare avviso API con QR code
+# Funzione per mostrare avviso API con QR code statico
 def show_api_warning(repo_name, api_guide_link):
     """Mostra un avviso sulle API necessarie con QR code"""
-    # Genera il QR code
-    qr_path = generate_qr_code(api_guide_link, repo_name)
+    # Percorso dell'immagine statica QR + link
+    qr_path = os.path.join(ADDON_PATH, "resources", "skins", "default", "media", "qr_with_support_text.jpg")
     
     # Crea e mostra il dialog personalizzato
     dialog = ApiWarningDialog(
@@ -161,8 +160,8 @@ def show_api_warning(repo_name, api_guide_link):
     dialog.doModal()
     confirmed = dialog.confirmed
     del dialog
-    
-    # Chiudi eventuali visualizzazioni di immagini rimaste aperte
+
+    # Chiudi eventuali immagini rimaste aperte
     xbmc.executebuiltin('Dialog.Close(1101,true)')
     
     return confirmed
