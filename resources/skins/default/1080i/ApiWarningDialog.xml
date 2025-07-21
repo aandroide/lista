@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <window type="dialog">
     <coordinates>
-        <left>435</left>
+        <left>390</left>
         <top>255</top>
     </coordinates>
     <controls>
@@ -19,7 +19,7 @@
         <control type="image">
             <left>0</left>
             <top>0</top>
-            <width>1080</width>
+            <width>1200</width>
             <height>620</height>
             <texture border="2">dialog_bg.png</texture>
         </control>
@@ -28,7 +28,7 @@
         <control type="image">
             <left>0</left>
             <top>0</top>
-            <width>1080</width>
+            <width>1200</width>
             <height>80</height>
             <texture colordiffuse="FF12B2E7" border="2">white.png</texture>
         </control>
@@ -37,7 +37,7 @@
         <control type="label">
             <left>0</left>
             <top>0</top>
-            <width>1080</width>
+            <width>1200</width>
             <height>80</height>
             <font>font30_title</font>
             <label>LEGGERE ATTENTAMENTE PRIMA DI CONTINUARE</label>
@@ -49,32 +49,32 @@
 
         <!-- QR Code -->
         <control type="image" id="300">
-            <left>30</left>
+            <left>40</left>
             <top>95</top>
             <width>300</width>
             <height>300</height>
             <aspectratio>keep</aspectratio>
         </control>
 
-        <!-- Link sotto QR -->
+        <!-- Link sotto QR (più largo) -->
         <control type="label" id="350">
-            <left>30</left>
+            <left>40</left>
             <top>405</top>
-            <width>300</width>
+            <width>420</width>
             <height>30</height>
             <font>font12</font>
             <label>Link: https://github.com/anxdpanic/plugin.video.youtube/issues/1095</label>
             <textcolor>FFFFFFFF</textcolor>
             <shadowcolor>FF000000</shadowcolor>
-            <align>center</align>
+            <align>left</align>
             <aligny>center</aligny>
         </control>
 
         <!-- Testo descrizione -->
         <control type="textbox" id="200">
-            <left>370</left>
+            <left>400</left>
             <top>95</top>
-            <width>680</width>
+            <width>750</width>
             <height>360</height>
             <font>font12_title</font>
             <align>left</align>
@@ -85,7 +85,7 @@
 
         <!-- Pulsante Visualizza QR -->
         <control type="button" id="400">
-            <left>370</left>
+            <left>400</left>
             <top>490</top>
             <width>320</width>
             <height>50</height>
@@ -101,7 +101,7 @@
 
         <!-- Pulsante Conferma -->
         <control type="button" id="500">
-            <left>710</left>
+            <left>740</left>
             <top>490</top>
             <width>320</width>
             <height>50</height>
