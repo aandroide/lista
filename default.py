@@ -134,7 +134,7 @@ class ApiWarningDialog(xbmcgui.WindowXMLDialog):
     def onClick(self, controlId):
         if controlId == 400:  # Visualizza QR Code a schermo intero
             xbmc.executebuiltin('ShowPicture(%s)' % self.qr_path)
-        elif controlId == 500:  # Ho preso visione, continua.
+        elif controlId == 500:  # Ho preso visione, continua
             self.confirmed = True
             self.close()
 
