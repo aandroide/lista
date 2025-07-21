@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <window type="dialog">
     <coordinates>
-        <left>450</left>
-        <top>270</top>
+        <left>435</left>
+        <top>255</top>
     </coordinates>
     <controls>
         <!-- Animazioni -->
@@ -15,12 +15,12 @@
             <effect type="fade" start="100" end="0" time="240" />
         </animation>
 
-        <!-- Sfondo dialog -->
+        <!-- Sfondo -->
         <control type="image">
             <left>0</left>
             <top>0</top>
             <width>1050</width>
-            <height>540</height>
+            <height>570</height>
             <texture border="2">dialog_bg.png</texture>
         </control>
 
@@ -33,13 +33,13 @@
             <texture colordiffuse="FF12B2E7" border="2">white.png</texture>
         </control>
 
-        <!-- Titolo testo -->
+        <!-- Titolo -->
         <control type="label">
             <left>0</left>
             <top>0</top>
             <width>1050</width>
             <height>70</height>
-            <font>font20_title</font>
+            <font>font24_title</font>
             <label>LEGGERE ATTENTAMENTE PRIMA DI CONTINUARE</label>
             <align>center</align>
             <aligny>center</aligny>
@@ -56,12 +56,12 @@
             <aspectratio>keep</aspectratio>
         </control>
 
-        <!-- Testo descrizione -->
+        <!-- Testo -->
         <control type="textbox" id="200">
             <left>360</left>
             <top>85</top>
             <width>660</width>
-            <height>310</height>
+            <height>340</height>
             <font>font12_title</font>
             <align>left</align>
             <aligny>top</aligny>
@@ -69,10 +69,10 @@
             <shadowcolor>FF000000</shadowcolor>
         </control>
 
-        <!-- Bottone Visualizza QR -->
+        <!-- Bottone QR -->
         <control type="button" id="400">
             <left>360</left>
-            <top>420</top>
+            <top>450</top>
             <width>320</width>
             <height>50</height>
             <font>font12_title</font>
@@ -88,7 +88,7 @@
         <!-- Bottone continua -->
         <control type="button" id="500">
             <left>700</left>
-            <top>420</top>
+            <top>450</top>
             <width>320</width>
             <height>50</height>
             <font>font12_title</font>
