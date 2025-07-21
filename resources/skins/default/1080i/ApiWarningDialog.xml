@@ -15,12 +15,12 @@
             <effect type="fade" start="100" end="0" time="240" />
         </animation>
 
-        <!-- Sfondo -->
+        <!-- Sfondo dialog -->
         <control type="image">
             <left>0</left>
             <top>0</top>
-            <width>1050</width>
-            <height>570</height>
+            <width>1080</width>
+            <height>600</height>
             <texture border="2">dialog_bg.png</texture>
         </control>
 
@@ -28,8 +28,8 @@
         <control type="image">
             <left>0</left>
             <top>0</top>
-            <width>1050</width>
-            <height>70</height>
+            <width>1080</width>
+            <height>80</height>
             <texture colordiffuse="FF12B2E7" border="2">white.png</texture>
         </control>
 
@@ -37,9 +37,9 @@
         <control type="label">
             <left>0</left>
             <top>0</top>
-            <width>1050</width>
-            <height>70</height>
-            <font>font24_title</font>
+            <width>1080</width>
+            <height>80</height>
+            <font>font30_title</font>
             <label>LEGGERE ATTENTAMENTE PRIMA DI CONTINUARE</label>
             <align>center</align>
             <aligny>center</aligny>
@@ -50,18 +50,18 @@
         <!-- QR Code -->
         <control type="image" id="300">
             <left>30</left>
-            <top>85</top>
+            <top>95</top>
             <width>300</width>
             <height>300</height>
             <aspectratio>keep</aspectratio>
         </control>
 
-        <!-- Testo -->
+        <!-- Testo descrizione -->
         <control type="textbox" id="200">
-            <left>360</left>
-            <top>85</top>
-            <width>660</width>
-            <height>340</height>
+            <left>370</left>
+            <top>95</top>
+            <width>680</width>
+            <height>360</height>
             <font>font12_title</font>
             <align>left</align>
             <aligny>top</aligny>
@@ -69,10 +69,10 @@
             <shadowcolor>FF000000</shadowcolor>
         </control>
 
-        <!-- Bottone QR -->
+        <!-- Pulsante Visualizza QR -->
         <control type="button" id="400">
-            <left>360</left>
-            <top>450</top>
+            <left>370</left>
+            <top>480</top>
             <width>320</width>
             <height>50</height>
             <font>font12_title</font>
@@ -85,10 +85,10 @@
             <texturenofocus border="40">button-nofocus.png</texturenofocus>
         </control>
 
-        <!-- Bottone continua -->
+        <!-- Pulsante Conferma -->
         <control type="button" id="500">
-            <left>700</left>
-            <top>450</top>
+            <left>710</left>
+            <top>480</top>
             <width>320</width>
             <height>50</height>
             <font>font12_title</font>
