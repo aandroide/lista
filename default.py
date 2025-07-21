@@ -146,8 +146,7 @@ class ApiWarningDialog(xbmcgui.WindowXMLDialog):
 def show_api_warning(repo_name, api_guide_link):
     """Mostra un avviso sulle API necessarie con QR code"""
     # Percorso dell'immagine statica QR + link
-    qr_path = os.path.join(ADDON_PATH, "resources", "skins", "default", "media", "q
-    api.png")
+    qr_path = os.path.join(ADDON_PATH, "resources", "skins", "default", "media", "api.png")
     
     # Crea e mostra il dialog personalizzato
     dialog = ApiWarningDialog(
