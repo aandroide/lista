@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<window type="dialog">
+<window type="dialog" id="13000">
+  <defaultcontrol>400</defaultcontrol> <!-- Supporto tastiera: pulsante 400 è il default -->
   <coordinates>
     <left>330</left>
     <top>255</top>
@@ -48,7 +49,7 @@
       <shadowcolor>FF000000</shadowcolor>
     </control>
 
-    <!-- QR Code Statico (api.png) -->
+    <!-- QR Code Statico -->
     <control type="image" id="300">
       <left>60</left>
       <top>90</top>
@@ -58,7 +59,7 @@
       <texture>api.png</texture>
     </control>
 
-    <!-- Descrizione Testuale -->
+    <!-- Testo descrizione -->
     <control type="textbox" id="200">
       <left>580</left>
       <top>100</top>
@@ -71,7 +72,7 @@
       <shadowcolor>FF000000</shadowcolor>
     </control>
 
-    <!-- Pulsante: Visualizza immagine -->
+    <!-- Pulsante: Visualizza immagine QR -->
     <control type="button" id="400">
       <left>580</left>
       <top>510</top>
@@ -84,8 +85,9 @@
       <textoffsetx>0</textoffsetx>
       <textoffsety>0</textoffsety>
       <textcolor>FFFFFFFF</textcolor>
+      <shadowcolor>FF000000</shadowcolor>
       <texturefocus border="20" colordiffuse="FF12B2E7">button-focus.png</texturefocus>
-      <texturenofocus border="20">button-nofocus.png</texturenofocus>
+      <texturenofocus border="20" colordiffuse="FF2A2E38">button-nofocus.png</texturenofocus>
     </control>
 
     <!-- Pulsante: Conferma -->
@@ -101,8 +103,9 @@
       <textoffsetx>0</textoffsetx>
       <textoffsety>0</textoffsety>
       <textcolor>FFFFFFFF</textcolor>
+      <shadowcolor>FF000000</shadowcolor>
       <texturefocus border="20" colordiffuse="FF12B2E7">button-focus.png</texturefocus>
-      <texturenofocus border="20">button-nofocus.png</texturenofocus>
+      <texturenofocus border="20" colordiffuse="FF2A2E38">button-nofocus.png</texturenofocus>
     </control>
 
   </controls>
