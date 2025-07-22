@@ -1,4 +1,3 @@
-# File: default.py
 # -*- coding: utf-8 -*-
 
 import xbmc
@@ -63,48 +62,67 @@ else:
 # Messaggio introduttivo
 show_intro_message_once(ADDON_NAME, FIRST_RUN_FILE)
 
-# Funzione per rimuovere le cartelle speciali
-def remove_special_folders():
-    """
-    Rimuove le cartelle speciali e le relative sorgenti da sources.xml
-    per le installazioni temporanee di YouTube e Trakt.
-    """
-    # Configurazione per le installazioni temporanee
-    temp_installs = [
-        {
-            "addon_id": "plugin.video.youtube",
-            "source_name": "YouTube Install",
-            "virtual_path": "special://profile/addon_data/youtube_install/"
-        },
-        {
-            "addon_id": "script.trakt",
-            "source_name": "Trakt Install",
-            "virtual_path": "special://profile/addon_data/trakt_install/"
-        }
-    ]
-    
-    for install in temp_installs:
-        # 1. Rimuovi da sources.xml usando sources_manager
-        fake_repo = {
-            "name": install['source_name'],
-            "url": install['virtual_path']
-        }
-        if sources_manager.remove_source_from_xml(fake_repo):
-            log(f"Rimossa sorgente {install['source_name']} da sources.xml", xbmc.LOGINFO)
-        else:
-            log(f"La sorgente {install['source_name']} non trovata in sources.xml", xbmc.LOGINFO)
-        
-        # 2. Rimuovi cartella fisica
-        dest_dir = xbmcvfs.translatePath(install['virtual_path'])
-        if os.path.exists(dest_dir):
-            try:
-                shutil.rmtree(dest_dir, ignore_errors=True)
-                log(f"Rimossa cartella {install['source_name']}: {dest_dir}", xbmc.LOGINFO)
-            except Exception as e:
-                log(f"Errore rimozione cartella {install['source_name']}: {e}", xbmc.LOGERROR)
-        else:
-            log(f"Cartella {install['source_name']} non trovata: {dest_dir}", xbmc.LOGINFO)
+class ApiWarningDialog(xbmcgui.WindowXMLDialog):
+    """Dialog personalizzato per l'avviso API con QR code integrato"""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.repo_name = kwargs.get('repo_name')
+        self.api_guide_link = kwargs.get('api_guide_link')
+        self.qr_path = kwargs.get('qr_path')
+        self.confirmed = False
 
+    def onInit(self):
+        # Imposta il titolo
+        self.setProperty("repo_name", self.repo_name)
+        
+        message = (
+            f"Per il corretto funzionamento dell'addon [B]{self.repo_name} è necessario[/B]:\n\n"
+            "1. Essere in possesso/creare un account Google\n"
+            "2. Seguire la guida per la creazione delle chiavi API\n"
+            "3. Essere consapevoli che in assenza di un account Google e la creazione delle relative API l'addon avrà funzionalità limitate\n"
+        )
+        self.getControl(200).setText(message)
+        
+        # Imposta il QR code statico
+        self.getControl(300).setImage(self.qr_path)
+        
+        # Focus sul pulsante "Visualizza QR Code/link"
+        self.setFocus(self.getControl(400))
+
+    def onClick(self, controlId):
+        if controlId == 400:  # Visualizza QR Code a schermo intero
+            xbmc.executebuiltin('ShowPicture(%s)' % self.qr_path)
+        elif controlId == 500:  # Ho preso visione, continua
+            self.confirmed = True
+            self.close()
+
+    def onAction(self, action):
+        if action.getId() in (xbmcgui.ACTION_NAV_BACK, xbmcgui.ACTION_PREVIOUS_MENU):
+            self.close()
+
+# Funzione per mostrare avviso API con QR code statico
+def show_api_warning(repo_name, api_guide_link):
+    """Mostra un avviso sulle API necessarie con QR code"""
+    # Percorso dell'immagine statica QR + link
+    qr_path = os.path.join(ADDON_PATH, "resources", "skins", "default", "media", "api.png")
+    
+    # Crea e mostra il dialog personalizzato
+    dialog = ApiWarningDialog(
+        "ApiWarningDialog.xml",
+        ADDON_PATH,
+        "default",
+        repo_name=repo_name,
+        api_guide_link=api_guide_link,
+        qr_path=qr_path
+    )
+    dialog.doModal()
+    confirmed = dialog.confirmed
+    del dialog
+
+    # Chiudi eventuali immagini rimaste aperte
+    xbmc.executebuiltin('Dialog.Close(1101,true)')
+    
+    return confirmed
 
 class RepoManagerGUI(xbmcgui.WindowXML):
     def __init__(self, *args, **kwargs):
@@ -167,11 +185,12 @@ class RepoManagerGUI(xbmcgui.WindowXML):
                 item.setArt({'icon': icon})
             item.setProperty('description', repo.get('description', ''))
             item.setProperty('telegram', repo.get('telegram', ''))
+            item.setProperty('api_guide', repo.get('api_guide', ''))
             
-            # Gestione speciale per YouTube e Trakt
+            # Gestione speciale per Trakt e YouTube
             repo_name = repo.get('name', '').lower()
-            if repo_name == 'youtube repo' or repo_name == 'trakt addon repo':
-                # YouTube e Trakt non vengono gestiti come sorgenti normali
+            if repo_name == 'trakt addon repo' or repo_name == 'youtube repo':
+                # Questi non vengono gestiti come sorgenti normali
                 item.setProperty('checked', "false")
                 item.setProperty('action_label', "Aggiungi")
             else:
@@ -193,14 +212,11 @@ class RepoManagerGUI(xbmcgui.WindowXML):
         name     = repo.get('name', '')
         desc     = repo.get('description', '')
         tg_link  = repo.get('telegram', '')
+        title_label = repo.get('Titolo Label', 'Fonte di supporto')
 
         self.controls['title'].setLabel(name)
         self.controls['description'].setText(desc)
-
-        if 'youtube repo' in name.lower() or 'yt music repo' in name.lower():
-            self.controls['static_label'].setLabel("Istruzioni per la creazione delle chiavi API Youtube")
-        else:
-            self.controls['static_label'].setLabel("Canale di supporto Telegram")
+        self.controls['static_label'].setLabel(title_label)
 
         self.controls['link'].setLabel(tg_link or "Nessun link disponibile")
         qr_path = generate_qr_code(tg_link, name) if tg_link else NO_TELEGRAM_IMG
@@ -244,10 +260,17 @@ class RepoManagerGUI(xbmcgui.WindowXML):
             repo = self.sources[self.selected_index]
             name = repo.get('name', '')
             name_lower = name.lower()
+            tg_link = repo.get('telegram', '')
+            api_guide = repo.get('api_guide', '')
             log(f"Click su repository: {name}", xbmc.LOGINFO)
             
+            # Mostra avviso API per YouTube e YT Music
+            if ('youtube' in name_lower or 'yt music' in name_lower) and not is_repo_installed(repo):
+                if not show_api_warning(name, api_guide or tg_link):
+                    return
+            
             # Gestione speciale per YouTube
-            if name_lower == 'youtube repo':
+            if name_lower == 'youtube repo' and not is_repo_installed(repo):
                 options = ["Scarica ultima versione Official", "Scarica ultima versione Beta"]
                 choice = xbmcgui.Dialog().select("YouTube Addon repo", options)
                 if choice < 0:
@@ -278,10 +301,9 @@ class RepoManagerGUI(xbmcgui.WindowXML):
             
             # Gestione speciale per Trakt
             if name_lower == 'trakt addon repo':
-                log("Avvio installazione Trakt", xbmc.LOGINFO)
                 install_trakt_addon()
                 return
-            
+                
             # Gestione standard per altri repository
             if is_repo_installed(repo):
                 self.uninstall_single(repo, True)
@@ -317,14 +339,13 @@ class RepoManagerGUI(xbmcgui.WindowXML):
             )
 
     def install_all(self):
-        # Separare i repository speciali (YouTube e Trakt) dagli altri
-        standard_repos = []
+        # Separare i repository speciali dagli altri
         special_repos = []
+        standard_repos = []
         
         for repo in self.sources:
             name_lower = repo.get('name', '').lower()
-            # Identifica esattamente i repository speciali
-            if name_lower == 'youtube repo' or name_lower == 'trakt addon repo':
+            if name_lower == 'trakt addon repo' or name_lower == 'youtube repo':
                 special_repos.append(repo)
             else:
                 standard_repos.append(repo)
@@ -348,13 +369,29 @@ class RepoManagerGUI(xbmcgui.WindowXML):
         
         progress_dialog.close()
         
-        # Installazione repository speciali (YouTube e Trakt)
+        # Gestione API per YouTube e YT Music
+        for repo in standard_repos:
+            name_lower = repo.get('name', '').lower()
+            if ('youtube' in name_lower or 'yt music' in name_lower) and not is_repo_installed(repo):
+                tg_link = repo.get('telegram', '')
+                api_guide = repo.get('api_guide', '')
+                if not show_api_warning(repo['name'], api_guide or tg_link):
+                    # Se l'utente annulla, consideriamo come saltato
+                    skipped_standard += 1
+                    added_standard -= 1
+
+        # Installazione repository speciali
         added_special = 0
         for repo in special_repos:
             name_lower = repo.get('name', '').lower()
+            tg_link = repo.get('telegram', '')
+            api_guide = repo.get('api_guide', '')
             
             if name_lower == 'youtube repo':
-                # YouTube richiede scelta tra versione ufficiale/beta
+                # Mostra avviso API per YouTube
+                if not show_api_warning(repo['name'], api_guide or tg_link):
+                    continue
+                    
                 options = ["Scarica ultima versione Official", "Scarica ultima versione Beta"]
                 choice = xbmcgui.Dialog().select("YouTube Addon repo", options)
                 if choice >= 0:
@@ -416,9 +453,6 @@ class RepoManagerGUI(xbmcgui.WindowXML):
 
         removed, errors = uninstall_all_repos(self.sources, progress_callback=progress_callback)
         
-        # Rimuovi le cartelle speciali di YouTube e Trakt
-        remove_special_folders()
-        
         progress_dialog.close()
         self.load_data()
         self.populate_list()
@@ -453,17 +487,9 @@ class RepoManagerGUI(xbmcgui.WindowXML):
             
     def install_single(self, repo, show_dialog=True):
         name = repo['name']
+        name_lower = name.lower()
 
-        if is_repo_installed(repo):
-            if show_dialog:
-                xbmcgui.Dialog().notification(
-                    ADDON_NAME,
-                    f"La sorgente «{name}» è già presente",
-                    ADDON_ICON,
-                    3000
-                )
-            return False
-
+        # Gestione normale per YT Music e altri repository
         success = install_repo(repo)
 
         if success:
