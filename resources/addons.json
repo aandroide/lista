@@ -1,113 +1,130 @@
-
 {
   "sources": [
     {
       "name": "Kodinerds repo",
       "description": "Repository contenente addon sviluppati e mantenuti dalla community, come DAZN, DMax, Playlist Loader, Youtube-dl Control e altri.",
       "url": "https://repo.kodinerds.net",
-      "telegram": ""
+      "telegram": "https://www.kodinerds.net/",
+      "Titolo Label": "Fonte di supporto"
     },
     {
       "name": "The Crew repo",
       "description": "Repo ufficiale per l'addon The Crew",
       "url": "https://team-crew.github.io/",
-      "telegram": "https://t.me/joinchat/Lkjo-xUTCNdY8FsChZOdHg"
+      "telegram": "https://t.me/joinchat/Lkjo-xUTCNdY8FsChZOdHg",
+      "Titolo Label": "Canale Telegram di supporto"
     },
     {
       "name": "S4Me repo",
-      "description": "Repo per l'addon Stream4Me: ricerca film/serie TV da siti italiani e internazionali.",
+      "description": "Repo per l'addon Stream4Me: ricerca film/serie TV e radio da siti pricipalmente Italiani, occasionalmente sono reperibile anche contenuti in lingua originale.",
       "url": "https://stream4me.github.io/repo/",
-      "telegram": "https://t.me/stream4me_addon"
+      "telegram": "https://github.com/Stream4me/addon/issues",
+      "Titolo Label": "Fonte di supporto"
     },
     {
       "name": "Mandrakodi repo",
       "description": "Repo per l'addon Mandrakodi: eventi sportivi live, VOD (inclusi contenuti vintage e XXX), canali DTT, regionali, sportivi, Samsung TV, Pluto TV e webcam.",
       "url": "https://mandrakodi.github.io/",
-      "telegram": "https://t.me/mandrakodi_support"
+      "telegram": "https://t.me/mandrakodi_support",
+      "Titolo Label": "Canale Telegram di supporto"
     },
     {
       "name": "WLTV repo",
-      "description": "Repo per l'addon WLTV: personalizzazione liste IPTV dei canali DTT, sezione globale di canali TV e webcam.",
+      "description": "Repo per l'addon WLTV: personalizzazione liste IPTV dei canali DTT, radio e sezione globale di canali TV e webcam.",
       "url": "https://worldlivetv.github.io/repo/",
-      "telegram": "https://t.me/WorldLiveTV"
+      "telegram": "https://t.me/WorldLiveTV",
+      "Titolo Label": "Canale Telegram di supporto"
     },
     {
       "name": "The Groove 360 repo",
       "description": "Repo per l'addon The Groove 360: streaming da siti principali, sezioni per canali TV free/pay, funzionalità estese tramite script integrati.",
       "url": "https://thegroove360.org/addons/",
-      "telegram": "https://t.me/thegroove360group"
+      "telegram": "https://t.me/thegroove360group",
+      "Titolo Label": "Canale Telegram di supporto"
     },
     {
       "name": "Bugatsinho repo (Sporthd)",
       "description": "Repo per l'addon Sporthd: contenuti sportivi in streaming.",
       "url": "https://bugatsinho.github.io/repo/",
-      "telegram": "https://t.me/joinchat/ETXTo1LHC4mkgdM1ysbH6g"
+      "telegram": "https://t.me/joinchat/ETXTo1LHC4mkgdM1ysbH6g",
+      "Titolo Label": "Canale Telegram di supporto"
     },
     {
       "name": "Sandmann79 repo (Amazon VOD)",
       "description": "Repo per l'addon Amazon VOD: accesso alla piattaforma ufficiale tramite account registrato (login richiesto).",
       "url": "https://api.github.com/repos/Sandmann79/xbmc/releases/tags/Repository",
-      "telegram": ""
+      "telegram": "https://github.com/Sandmann79/xbmc/issues",
+      "Titolo Label": "Fonte di supporto"
     },
     {
       "name": "Castagnait repo (Netflix)",
       "description": "Repo per l'addon Netflix: accesso alla piattaforma ufficiale tramite account registrato (login richiesto).",
       "url": "https://castagnait.github.io/repository.castagnait/",
-      "telegram": ""
+      "telegram": "https://github.com/CastagnaIT/plugin.video.netflix/issues",
+      "Titolo Label": "Fonte di supporto"
     },
     {
       "name": "Jurialmunkey repo (TheMovieDb Helper e Skin Artic)",
       "description": "Repo per TheMovieDb Helper e Skin Artic: strumenti per la gestione di librerie multimediali e skin personalizzate.",
       "url": "https://jurialmunkey.github.io/repository.jurialmunkey/",
-      "telegram": ""
+      "telegram": "https://github.com/jurialmunkey/plugin.video.themoviedb.helper/issues",
+      "Titolo Label": "Fonte di supporto"
     },
     {
       "name": "Dobbelina repo (Cumination)",
       "description": "Repo per l'addon Cumination: contenuti per adulti da numerosi siti.",
       "url": "https://dobbelina.github.io",
-      "telegram": ""
+      "telegram": "https://github.com/dobbelina/repository.dobbelina/issues",
+      "Titolo Label": "Fonte di supporto"
      },
     {
       "name": "Elementum repo",
-      "description": "Repo per l'addon Elementum: streaming P2P di contenuti video.",
+      "description": "Repo per l'addon Elementum: addon che consente lo streaming o il download di contenuti torrent come video e audio su Kodi.",
       "url": "https://github.com/ElementumOrg/repository.elementumorg/releases/",
-      "telegram": ""
+      "telegram": "https://github.com/elgatito/plugin.video.elementum/issues",
+      "Titolo Label": "Fonte di supporto"
     },
     {
       "name": "Digitalking repo",
       "description": "Utilizzando OptiKlean, è possibile: liberare spazio su disco rimuovendo files temporanei e obsoleti, eliminare residui di addon disabilitati e disinstallati, ridurre la frammentazione dei database SQLite, migliorare sensibilmente la velocità di risposta dell’interfaccia e la stabilità generale del sistema. Con un’interfaccia semplice ma potente, e funzionalità automatizzabili all’avvio di Kodi, OptiKlean è lo strumento ideale per mantenere il proprio media center sempre efficiente.",
       "url": "https://www.digitalking.it/kodi-repo/",
-      "telegram": "https://t.me/ItalianSpaghettiGeeks"
+      "telegram": "https://t.me/ItalianSpaghettiGeeks",
+      "Titolo Label": "Canale Telegram di supporto"
     },
     {
       "name": "Rock Clean repo",
-      "description": "Addon per la pulizia su Kodi.",
+      "description": "Addon per la pulizia e la manutenzione di Kodi, nel caso si abiliti la pulizia automatica è importanete evitare di abilitarla per la sezione Add-on Data per non perdere le cofigurazioni delle skin e degli addons.",
       "url": "http://www.rockodi.com",
-      "telegram": ""
+      "telegram": "",
+      "Titolo Label": "Fonte di supporto"
     },
     {
       "name": "Youtube repo",
       "description": "Guarda i tuoi contenuti YouTube preferiti su Kodi.",
       "url": "https://github.com/anxdpanic/plugin.video.youtube/releases/",
-      "telegram": "https://github.com/anxdpanic/plugin.video.youtube/issues/1095"
+      "telegram": "https://github.com/anxdpanic/plugin.video.youtube/issues",
+      "Titolo Label": "Fonte di supporto"
     },
     {
       "name": "Trakt Addon repo",
-      "description": "Scarica l'ultima versione dello script Trakt.",
+      "description": "Scarica l'ultima versione dello script Trakt per Kodi, Trakt.tv è un servizio online che, previa registrazione ed installazione del relativo addon, ti permette di sincronizzare quello che visualizzi o hai precedentemente visualizzato sui vari dispositivi o in questa caso su Kodi.",
       "url": "https://github.com/trakt/script.trakt/releases",
-      "telegram": ""
+      "telegram": "https://github.com/trakt/script.trakt/issues",
+      "Titolo Label": "Fonte di supporto"
     },
     {
       "name": "Slyguy.addons repo",
       "description": "Repository contenente addons sviluppati e mantenuti da Matt Huisman, come Disney+, Pluto TV, Samsung TV Plus, Roku e altri, per alcuni addons è necessario un account con regolare abbonamento.",
       "url": "http://slyguy.uk",
-      "telegram": ""
+      "telegram": "https://github.com/matthuisman/slyguy.addons/issues",
+      "Titolo Label": "Fonte di supporto"
     },
 	{
       "name": "YT Music repo",
       "description": "Repo per l'addon YT Music, ascolta la tua musica preferita su Kodi grazie al servizio YouTube Music.",
       "url": "https://goldenfreddy0703.github.io/repository.ytmusic/",
-      "telegram": "https://github.com/anxdpanic/plugin.video.youtube/issues/1095"
+      "telegram": "https://github.com/anxdpanic/plugin.video.youtube/issues",
+      "Titolo Label": "Fonte di supporto"
     }
   ]
 }
