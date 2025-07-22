@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<window type="dialog" id="13000">
+  <defaultcontrol>400</defaultcontrol> <!-- Supporto tastiera: pulsante 400 è il default -->
+  <coordinates>
+    <left>330</left>
+    <top>255</top>
+  </coordinates>
+  <controls>
+
+    <!-- Animazioni apertura/chiusura -->
+    <animation type="WindowOpen" reversible="false">
+      <effect type="zoom" start="80" end="100" center="960,540" delay="160" tween="back" time="240"/>
+      <effect type="fade" delay="160" end="100" time="240"/>
+    </animation>
+    <animation type="WindowClose" reversible="false">
+      <effect type="zoom" start="100" end="80" center="960,540" easing="in" tween="back" time="240"/>
+      <effect type="fade" start="100" end="0" time="240"/>
+    </animation>
+
+    <!-- Sfondo dialog -->
+    <control type="image">
+      <left>0</left>
+      <top>0</top>
+      <width>1260</width>
+      <height>620</height>
+      <texture border="2">dialog_bg.png</texture>
+    </control>
+
+    <!-- Barra titolo -->
+    <control type="image">
+      <left>0</left>
+      <top>0</top>
+      <width>1260</width>
+      <height>80</height>
+      <texture colordiffuse="FF12B2E7" border="2">white.png</texture>
+    </control>
+
+    <!-- Titolo -->
+    <control type="label">
+      <left>0</left>
+      <top>0</top>
+      <width>1260</width>
+      <height>80</height>
+      <font>font30_title</font>
+      <label>LEGGERE ATTENTAMENTE PRIMA DI CONTINUARE</label>
+      <align>center</align>
+      <aligny>center</aligny>
+      <textcolor>FFFFFFFF</textcolor>
+      <shadowcolor>FF000000</shadowcolor>
+    </control>
+
+    <!-- QR Code Statico -->
+    <control type="image" id="300">
+      <left>60</left>
+      <top>90</top>
+      <width>500</width>
+      <height>500</height>
+      <aspectratio>keep</aspectratio>
+      <texture>api.png</texture>
+    </control>
+
+    <!-- Testo descrizione -->
+    <control type="textbox" id="200">
+      <left>580</left>
+      <top>100</top>
+      <width>650</width>
+      <height>360</height>
+      <font>font13</font>
+      <align>left</align>
+      <aligny>top</aligny>
+      <textcolor>FFFFFFFF</textcolor>
+      <shadowcolor>FF000000</shadowcolor>
+    </control>
+
+    <!-- Pulsante: Visualizza immagine QR -->
+    <control type="button" id="400">
+      <left>580</left>
+      <top>510</top>
+      <width>360</width>
+      <height>50</height>
+      <font>font14_title</font>
+      <label>Visualizza QR Code/Link</label>
+      <align>center</align>
+      <aligny>center</aligny>
+      <textoffsetx>0</textoffsetx>
+      <textoffsety>0</textoffsety>
+      <textcolor>FFFFFFFF</textcolor>
+      <shadowcolor>FF000000</shadowcolor>
+      <texturefocus border="20" colordiffuse="FF12B2E7">button-focus.png</texturefocus>
+      <texturenofocus border="20" colordiffuse="FF2A2E38">button-nofocus.png</texturenofocus>
+    </control>
+
+    <!-- Pulsante: Conferma -->
+    <control type="button" id="500">
+      <left>960</left>
+      <top>510</top>
+      <width>300</width>
+      <height>50</height>
+      <font>font14_title</font>
+      <label>Ho preso visione, continua.</label>
+      <align>center</align>
+      <aligny>center</aligny>
+      <textoffsetx>0</textoffsetx>
+      <textoffsety>0</textoffsety>
+      <textcolor>FFFFFFFF</textcolor>
+      <shadowcolor>FF000000</shadowcolor>
+      <texturefocus border="20" colordiffuse="FF12B2E7">button-focus.png</texturefocus>
+      <texturenofocus border="20" colordiffuse="FF2A2E38">button-nofocus.png</texturenofocus>
+    </control>
+
+  </controls>
+</window>
