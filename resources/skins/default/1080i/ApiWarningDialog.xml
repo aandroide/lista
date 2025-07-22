@@ -51,8 +51,8 @@
 
         <!-- QR Code statico con link -->
         <control type="image" id="300">
-            <left>80</left>
-            <top>100</top>
+            <left>60</left>
+            <top>90</top>
             <width>400</width>
             <height>400</height>
             <aspectratio>keep</aspectratio>
