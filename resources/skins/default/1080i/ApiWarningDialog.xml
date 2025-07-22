@@ -53,8 +53,8 @@
         <control type="image" id="300">
             <left>80</left>
             <top>100</top>
-            <width>320</width>
-            <height>320</height>
+            <width>500</width>
+            <height>500</height>
             <aspectratio>keep</aspectratio>
             <texture>api.png</texture>
         </control>
