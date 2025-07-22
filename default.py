@@ -210,24 +210,16 @@ class RepoManagerGUI(xbmcgui.WindowXML):
 
         repo     = self.sources[self.selected_index]
         name     = repo.get('name', '')
-        name_lower = name.lower()
         desc     = repo.get('description', '')
         tg_link  = repo.get('telegram', '')
-        api_guide = repo.get('api_guide', '')
+        title_label = repo.get('Titolo Label', 'Fonte di supporto')
 
         self.controls['title'].setLabel(name)
         self.controls['description'].setText(desc)
+        self.controls['static_label'].setLabel(title_label)
 
-        # Determina il tipo di link da mostrare
-        if 'youtube' in name_lower or 'yt music' in name_lower:
-            self.controls['static_label'].setLabel("Istruzioni per la creazione delle chiavi API")
-            display_link = api_guide or tg_link
-        else:
-            self.controls['static_label'].setLabel("Fonte di supporto")
-            display_link = tg_link
-
-        self.controls['link'].setLabel(display_link or "Nessun link disponibile")
-        qr_path = generate_qr_code(display_link, name) if display_link else NO_TELEGRAM_IMG
+        self.controls['link'].setLabel(tg_link or "Nessun link disponibile")
+        qr_path = generate_qr_code(tg_link, name) if tg_link else NO_TELEGRAM_IMG
         self.controls['qr'].setImage(qr_path)
 
     def onAction(self, action):
