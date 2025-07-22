@@ -314,9 +314,9 @@ class RepoManagerGUI(xbmcgui.WindowXML):
             api_guide = repo.get('api_guide', '')
             log(f"Click su repository: {name}", xbmc.LOGINFO)
             
-            # Gestione speciale per YouTube e YT Music
-            if 'youtube' in name_lower or 'yt music' in name_lower:
-                # Mostra prima l'avviso sulle API
+            # Gestione speciale per YouTube e YT Music - SOLO SE STIAMO INSTALLANDO
+            if ('youtube' in name_lower or 'yt music' in name_lower) and not is_repo_installed(repo):
+                # Mostra prima l'avviso sulle API solo per installazione
                 if not show_api_warning(name, api_guide or tg_link):
                     return
                     
@@ -348,17 +348,15 @@ class RepoManagerGUI(xbmcgui.WindowXML):
                     log("Errore durante l'installazione di YouTube", xbmc.LOGERROR)
                 return
             
-            # Gestione speciale per Trakt
-            if name_lower == 'trakt addon repo':
-                log("Avvio installazione Trakt", xbmc.LOGINFO)
-                install_trakt_addon()
-                return
-            
             # Gestione standard per altri repository
             if is_repo_installed(repo):
                 self.uninstall_single(repo, True)
             else:
-                self.install_single(repo, True)
+                # Gestione separata per Trakt (solo installazione)
+                if name_lower == 'trakt addon repo':
+                    install_trakt_addon()
+                else:
+                    self.install_single(repo, True)
                 
         except Exception as e:
             log(f"Errore durante il click sul repository: {str(e)}", xbmc.LOGERROR)
