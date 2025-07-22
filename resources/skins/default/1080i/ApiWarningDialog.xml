@@ -1,29 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <window type="dialog" id="13001">
     <defaultcontrol>400</defaultcontrol>
-    <allowoverlay>yes</allowoverlay>
     <coordinates>
-        <left>360</left>
-        <top>240</top>
+        <left>390</left>
+        <top>255</top>
     </coordinates>
     <controls>
+
+        <!-- Animazioni -->
+        <animation type="WindowOpen" reversible="false">
+            <effect type="zoom" start="80" end="100" center="960,540" delay="160" tween="back" time="240" />
+            <effect type="fade" delay="160" end="100" time="240" />
+        </animation>
+        <animation type="WindowClose" reversible="false">
+            <effect type="zoom" start="100" end="80" center="960,540" easing="in" tween="back" time="240" />
+            <effect type="fade" start="100" end="0" time="240" />
+        </animation>
 
         <!-- Sfondo dialog -->
         <control type="image">
             <left>0</left>
             <top>0</top>
             <width>1200</width>
-            <height>640</height>
-            <texture border="20">dialog-bg.png</texture>
+            <height>620</height>
+            <texture border="2">dialog_bg.png</texture>
         </control>
 
-        <!-- Barra superiore -->
+        <!-- Barra titolo -->
         <control type="image">
             <left>0</left>
             <top>0</top>
             <width>1200</width>
             <height>80</height>
-            <texture colordiffuse="FF12B2E7" border="0">white.png</texture>
+            <texture colordiffuse="FF12B2E7" border="2">white.png</texture>
         </control>
 
         <!-- Titolo -->
@@ -32,62 +41,77 @@
             <top>0</top>
             <width>1200</width>
             <height>80</height>
-            <label>LEGGERE ATTENTAMENTE PRIMA DI CONTINUARE</label>
             <font>font30_title</font>
+            <label>LEGGERE ATTENTAMENTE PRIMA DI CONTINUARE</label>
             <align>center</align>
             <aligny>center</aligny>
             <textcolor>FFFFFFFF</textcolor>
+            <shadowcolor>FF000000</shadowcolor>
         </control>
 
-        <!-- QR Code -->
+        <!-- QR Code statico con link -->
         <control type="image" id="300">
             <left>80</left>
-            <top>120</top>
-            <width>400</width>
-            <height>400</height>
+            <top>100</top>
+            <width>320</width>
+            <height>320</height>
             <aspectratio>keep</aspectratio>
             <texture>api.png</texture>
         </control>
 
-        <!-- Testo messaggio -->
+        <!-- Testo descrizione -->
         <control type="textbox" id="200">
-            <left>500</left>
-            <top>120</top>
-            <width>680</width>
+            <left>440</left>
+            <top>100</top>
+            <width>700</width>
             <height>360</height>
             <font>font13</font>
+            <align>left</align>
+            <aligny>top</aligny>
             <textcolor>FFFFFFFF</textcolor>
             <shadowcolor>FF000000</shadowcolor>
             <scroll>true</scroll>
+            <autoscroll>false</autoscroll>
         </control>
 
         <!-- Pulsante Visualizza QR -->
         <control type="button" id="400">
-            <left>420</left>
-            <top>540</top>
-            <width>360</width>
+            <left>440</left>
+            <top>490</top>
+            <width>320</width>
             <height>50</height>
-            <label>Visualizza QR</label>
-            <font>font13</font>
+            <font>font13_title</font>
+            <label>Visualizza QR Code/Link</label>
             <align>center</align>
-            <textoffsetx>10</textoffsetx>
-            <texturefocus border="12" colordiffuse="FF12B2E7">button-focus.png</texturefocus>
-            <texturenofocus border="12">button-nofocus.png</texturenofocus>
+            <aligny>center</aligny>
+            <textcolor>FFFFFFFF</textcolor>
+            <shadowcolor>FF000000</shadowcolor>
+            <texturefocus border="20" colordiffuse="FF12B2E7">button-focus.png</texturefocus>
+            <texturenofocus border="20" colordiffuse="FF2A2E38">button-nofocus.png</texturenofocus>
+            <onleft>500</onleft>
+            <onright>500</onright>
+            <onup>400</onup>
+            <ondown>400</ondown>
         </control>
 
-        <!-- Pulsante Continua -->
+        <!-- Pulsante Conferma -->
         <control type="button" id="500">
             <left>800</left>
-            <top>540</top>
-            <width>360</width>
+            <top>490</top>
+            <width>320</width>
             <height>50</height>
+            <font>font13_title</font>
             <label>Ho preso visione, continua.</label>
-            <font>font13</font>
             <align>center</align>
-            <textoffsetx>10</textoffsetx>
-            <texturefocus border="12" colordiffuse="FF12B2E7">button-focus.png</texturefocus>
-            <texturenofocus border="12">button-nofocus.png</texturenofocus>
+            <aligny>center</aligny>
+            <textcolor>FFFFFFFF</textcolor>
+            <shadowcolor>FF000000</shadowcolor>
+            <texturefocus border="20" colordiffuse="FF12B2E7">button-focus.png</texturefocus>
+            <texturenofocus border="20" colordiffuse="FF2A2E38">button-nofocus.png</texturenofocus>
+            <onleft>400</onleft>
+            <onright>400</onright>
+            <onup>500</onup>
+            <ondown>500</ondown>
         </control>
-
     </controls>
 </window>
