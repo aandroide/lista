@@ -34,7 +34,6 @@ https://aandroide.github.io/repo/.
 - Funzionano **esattamente come gli altri repository**, ma con una differenza:
 - Viene scaricato automaticamente il file `.zip` più recente dalla **pagina GitHub Releases**
 - Il file viene salvato in una cartella dedicata (es. `youtube_install`o 'trakt install') visibile in "Installa da file ZIP"
-- Dopo il riavvio e l’installazione manuale, la cartella viene **rimossa automaticamente**
 - In questi 2 casi, il check non diventerà verde in quanto sono trattate come repo speciali che scaricano sempre l'ultima versione disponibile da github e soltanto dopo aver installato l'addon, al prossimo riavvio di kodi è stata studiata una pulizia automatica che rimuove I file zip per recuperare spazio.
 
 ### 💬 Supporto Telegram via QR Code
