@@ -78,7 +78,7 @@ class ApiWarningDialog(xbmcgui.WindowXMLDialog):
         message = (
             f"Per il corretto funzionamento dell'addon [B]{self.repo_name} è necessario[/B]:\n\n"
             "1. Essere in possesso/creare un account Google\n"
-            "2. Seguire la guida per la creazione delle chiavi API\n"
+            "2. Seguire la guida per la creazione delle chiavi API, scansionando il QR Code\n"
             "3. Essere consapevoli che in assenza di un account Google e la creazione delle relative API l'addon avrà funzionalità limitate\n"
         )
         self.getControl(200).setText(message)
