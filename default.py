@@ -65,7 +65,7 @@ class ApiWarningDialog(xbmcgui.WindowXMLDialog):
     """Dialog personalizzato per l'avviso API con QR code integrato"""
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.repo_name = kwargs.get('repo_name')
+        self.repo_name = kwargs.get('youtube)
         self.api_guide_link = kwargs.get('api_guide_link')
         self.qr_path = kwargs.get('qr_path')
         self.confirmed = False
