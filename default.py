@@ -65,14 +65,14 @@ class ApiWarningDialog(xbmcgui.WindowXMLDialog):
     """Dialog personalizzato per l'avviso API con QR code integrato"""
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.repo_name = kwargs.get('youtube)
+        self.repo_name = kwargs.get('repo_name')
         self.api_guide_link = kwargs.get('api_guide_link')
         self.qr_path = kwargs.get('qr_path')
         self.confirmed = False
 
     def onInit(self):
         # Imposta il titolo
-        self.setProperty("YouTube")
+        self.setProperty("repo_name", self.repo_name)
         
         message = (
             f"Per il corretto funzionamento dell'addon [B]{self.repo_name} è necessario[/B]:\n\n"
@@ -102,6 +102,12 @@ class ApiWarningDialog(xbmcgui.WindowXMLDialog):
 # Funzione per mostrare avviso API con QR code statico
 def show_api_warning(repo_name, api_guide_link):
     """Mostra un avviso sulle API necessarie con QR code"""
+    # Pulisci il nome del repo per YouTube/YT Music
+    clean_name = repo_name
+    if "youtube" in repo_name.lower() or "yt music" in repo_name.lower():
+        # Rimuove le parole non necessarie e spazi extra
+        clean_name = repo_name.replace(" repo", "").replace(" Repo", "").replace("Addon", "").strip()
+    
     # Percorso dell'immagine statica QR + link
     qr_path = os.path.join(ADDON_PATH, "resources", "skins", "default", "media", "api.png")
     
@@ -110,7 +116,7 @@ def show_api_warning(repo_name, api_guide_link):
         "ApiWarningDialog.xml",
         ADDON_PATH,
         "default",
-        repo_name=repo_name,
+        repo_name=clean_name,  # Usa il nome pulito
         api_guide_link=api_guide_link,
         qr_path=qr_path
     )
