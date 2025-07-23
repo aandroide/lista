@@ -49,9 +49,9 @@
       <shadowcolor>FF000000</shadowcolor>
     </control>
 
-    <!-- QR Code Statico - Spostato a sinistra -->
+    <!-- QR Code Statico - Centrato -->
     <control type="image" id="300">
-      <left>40</left> <!-- Ridotto da 60 a 40 -->
+      <left>20</left> <!-- Ulteriore spostamento a sinistra -->
       <top>90</top>
       <width>500</width>
       <height>500</height>
@@ -59,9 +59,9 @@
       <texture>api.png</texture>
     </control>
 
-    <!-- Testo descrizione - Spostato a sinistra -->
+    <!-- Testo descrizione - Centrato -->
     <control type="textbox" id="200">
-      <left>560</left> <!-- Ridotto da 580 a 560 -->
+      <left>540</left> <!-- Ulteriore spostamento a sinistra -->
       <top>100</top>
       <width>650</width>
       <height>360</height>
@@ -74,11 +74,11 @@
       <ondown>400</ondown>
     </control>
 
-    <!-- Pulsante: Visualizza immagine QR - Spostato a sinistra -->
+    <!-- Pulsante: Visualizza immagine QR - Modificato per uniformità -->
     <control type="button" id="400">
-      <left>560</left> <!-- Ridotto da 580 a 560 -->
+      <left>540</left> <!-- Spostato a sinistra -->
       <top>510</top>
-      <width>360</width>
+      <width>380</width> <!-- Larghezza aumentata -->
       <height>50</height>
       <font>font14_title</font>
       <label>Visualizza QR Code/Link</label>
@@ -94,11 +94,14 @@
       <ondown>200</ondown>
       <onleft>500</onleft>
       <onright>500</onright>
+      <!-- Aggiunto padding per uniformità -->
+      <texturenofocus border="25">button-nofocus.png</texturenofocus>
+      <texturefocus border="25">button-focus.png</texturefocus>
     </control>
 
-    <!-- Pulsante: Conferma - Spostato a sinistra -->
+    <!-- Pulsante: Conferma - Modificato per uniformità -->
     <control type="button" id="500">
-      <left>940</left> <!-- Ridotto da 960 a 940 -->
+      <left>940</left> <!-- Spostato a sinistra -->
       <top>510</top>
       <width>300</width>
       <height>50</height>
@@ -116,6 +119,9 @@
       <ondown>200</ondown>
       <onleft>400</onleft>
       <onright>400</onright>
+      <!-- Aggiunto padding per uniformità -->
+      <texturenofocus border="25">button-nofocus.png</texturenofocus>
+      <texturefocus border="25">button-focus.png</texturefocus>
     </control>
 
   </controls>
