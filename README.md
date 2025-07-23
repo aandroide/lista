@@ -35,10 +35,11 @@ https://aandroide.github.io/repo/.
 - Viene scaricato automaticamente il file `.zip` più recente dalla **pagina GitHub Releases**
 - Il file viene salvato in una cartella dedicata (es. `youtube_install`o 'trakt install') visibile in "Installa da file ZIP"
 - Dopo il riavvio e l’installazione manuale, la cartella viene **rimossa automaticamente**
+- In questi 2 casi, il check non diventerà verde in quanto sono trattate come repo speciali che scaricano sempre l'ultima versione disponibile da github e soltanto dopo aver installato l'addon, al prossimo riavvio di kodi è stata studiata una pulizia automatica che rimuove I file zip per recuperare spazio.
 
 ### 💬 Supporto Telegram via QR Code
 - Se presente, il link Telegram viene trasformato in **QR code**.
-- In assenza del link, viene mostrata un’immagine alternativa con **logo barrato**.
+- Per gli addon che non hanno un canale Telegram, verrà mostrato il Qr Code che porta alla fonte ufficiale di supporto.
 
 ### 🛠️ Personalizzazione
 - Impostazioni configurabili da GUI:
@@ -111,7 +112,7 @@ Con **Addon & Repo Installer**:
 - Viene generato **QR Code** scansionabile.
 - In mancanza, viene mostrato un logo "no Telegram" barrato.
 
-### 🤳 Facile da usare anche col telecomando
+### 🤳 Facile da usare anche con il  telecomando
 - Navigazione ottimizzata per Fire TV.
 - GUI a schermo intero, leggibile e chiara.
 - Nessun bisogno di tastiere o digitazioni complesse.
