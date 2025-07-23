@@ -49,9 +49,9 @@
       <shadowcolor>FF000000</shadowcolor>
     </control>
 
-    <!-- QR Code Statico -->
+    <!-- QR Code Statico - Spostato a sinistra -->
     <control type="image" id="300">
-      <left>60</left>
+      <left>40</left> <!-- Ridotto da 60 a 40 -->
       <top>90</top>
       <width>500</width>
       <height>500</height>
@@ -59,9 +59,9 @@
       <texture>api.png</texture>
     </control>
 
-    <!-- Testo descrizione -->
+    <!-- Testo descrizione - Spostato a sinistra -->
     <control type="textbox" id="200">
-      <left>580</left>
+      <left>560</left> <!-- Ridotto da 580 a 560 -->
       <top>100</top>
       <width>650</width>
       <height>360</height>
@@ -70,14 +70,13 @@
       <aligny>top</aligny>
       <textcolor>FFFFFFFF</textcolor>
       <shadowcolor>FF000000</shadowcolor>
-      <!-- Aggiunto per navigazione -->
       <focusable>true</focusable>
       <ondown>400</ondown>
     </control>
 
-    <!-- Pulsante: Visualizza immagine QR -->
+    <!-- Pulsante: Visualizza immagine QR - Spostato a sinistra -->
     <control type="button" id="400">
-      <left>580</left>
+      <left>560</left> <!-- Ridotto da 580 a 560 -->
       <top>510</top>
       <width>360</width>
       <height>50</height>
@@ -91,16 +90,15 @@
       <shadowcolor>FF000000</shadowcolor>
       <texturefocus border="20" colordiffuse="FF12B2E7">button-focus.png</texturefocus>
       <texturenofocus border="20" colordiffuse="FF2A2E38">button-nofocus.png</texturenofocus>
-      <!-- Navigazione aggiunta -->
       <onup>200</onup>
       <ondown>200</ondown>
       <onleft>500</onleft>
       <onright>500</onright>
     </control>
 
-    <!-- Pulsante: Conferma -->
+    <!-- Pulsante: Conferma - Spostato a sinistra -->
     <control type="button" id="500">
-      <left>960</left>
+      <left>940</left> <!-- Ridotto da 960 a 940 -->
       <top>510</top>
       <width>300</width>
       <height>50</height>
@@ -114,7 +112,6 @@
       <shadowcolor>FF000000</shadowcolor>
       <texturefocus border="20" colordiffuse="FF12B2E7">button-focus.png</texturefocus>
       <texturenofocus border="20" colordiffuse="FF2A2E38">button-nofocus.png</texturenofocus>
-      <!-- Navigazione aggiunta -->
       <onup>200</onup>
       <ondown>200</ondown>
       <onleft>400</onleft>
