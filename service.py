@@ -1,183 +1,417 @@
 # -*- coding: utf-8 -*-
-import xbmc
-import xbmcaddon
-import xbmcgui
-import xbmcvfs
-import os
-import time
-import re
-import traceback
-import json
-import urllib.request
-from resources.lib.utils import log
+"""
+Repo_Addon_installer-Service per Kodi addon: sincronizza i file remoti
+- Esegue sync solo se c'è un nuovo commit
+- Scarica file mancanti o modificati
+- Rimuove file locali non più remoti
+- Notifica solo se ci sono aggiornamenti, mostrando il commit
+- Pulizia automatica delle installazioni temporanee
+"""
 
+import xbmc, xbmcaddon, xbmcvfs, xbmcgui
+import urllib.request, urllib.error
+import json, os, shutil
+from resources.lib import sources_manager
+
+# --- Configurazione Addon ---
 ADDON = xbmcaddon.Addon()
 ADDON_ID = ADDON.getAddonInfo('id')
 ADDON_NAME = ADDON.getAddonInfo('name')
-ADDON_ICON = ADDON.getAddonInfo('icon')
+ICON_PATH = xbmcvfs.translatePath(
+    os.path.join('special://home/addons', ADDON_ID, ADDON.getAddonInfo('icon'))
+)
 
-# Percorsi API
-YOUTUBE_API_URL = "https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest"
-TRAKT_API_URL = "https://api.github.com/repos/trakt/script.trakt/releases/latest"
+# Percorsi
+PROFILE_PATH = xbmcvfs.translatePath(ADDON.getAddonInfo('profile'))
+os.makedirs(PROFILE_PATH, exist_ok=True)
+LAST_COMMIT_FILE = os.path.join(PROFILE_PATH, 'last_commit.txt')
+ADDON_PATH = xbmcvfs.translatePath(os.path.join('special://home/addons', ADDON_ID))
 
-# Cache delle versioni (per evitare troppe richieste)
-version_cache = {}
-cache_expiration = 0
-CACHE_DURATION = 3600  # 1 ora
+# File da preservare
+IGNORE_FILES = {'.firstrun'}
 
-def get_installed_addon_version(addon_id):
-    """Recupera la versione di un addon installato"""
+# Impostazioni GitHub
+github_user = ADDON.getSetting('github_user')
+github_repo = ADDON.getSetting('github_repo')
+github_branch = ADDON.getSetting('github_branch') or 'main'
+
+# --- Helper Generici ---
+def log_info(msg):
+    xbmc.log(f"[Repo_Addon_installer-Service] {msg}", xbmc.LOGINFO)
+
+def log_error(msg):
+    xbmc.log(f"[Repo_Addon_installer-Service] {msg}", xbmc.LOGERROR)
+
+def handle_http_error(e):
+    """Gestione avanzata errori HTTP con notifiche utente"""
+    if e.code == 403:
+        xbmcgui.Dialog().notification(
+            ADDON_NAME,
+            "Limite richieste GitHub raggiunto!",
+            xbmcgui.NOTIFICATION_ERROR,
+            7000
+        )
+        xbmcgui.Dialog().ok(
+            ADDON_NAME,
+            "Errore 403: Accesso negato\n\n"
+            "Hai superato il limite di richieste a GitHub.\n\n"
+            "Soluzioni possibili:\n"
+            "1. Riavvia il modem per ottenere un nuovo IP\n"
+            "2. Prova di nuovo tra 1-2 ore\n"
+            "3. Contatta il provider se il problema persiste\n\n"
+            "GitHub limita le richieste per proteggere i suoi server."
+        )
+    elif e.code == 404:
+        xbmcgui.Dialog().notification(
+            ADDON_NAME,
+            "URL non trovato! Verifica le impostazioni",
+            xbmcgui.NOTIFICATION_ERROR,
+            5000
+        )
+    else:
+        xbmcgui.Dialog().notification(
+            ADDON_NAME,
+            f"Errore {e.code} durante l'accesso a GitHub",
+            xbmcgui.NOTIFICATION_ERROR,
+            5000
+        )
+    return False
+
+def github_api_request(path, timeout=10):
+    """Chiamata centralizzata alle API GitHub con gestione errori avanzata"""
+    url = f"https://api.github.com/repos/{github_user}/{github_repo}{path}"
     try:
-        addon = xbmcaddon.Addon(addon_id)
-        version = addon.getAddonInfo('version')
-        log(f"Versione installata {addon_id}: {version}", xbmc.LOGINFO)
-        return version
-    except:
-        return None
+        resp = urllib.request.urlopen(url, timeout=timeout)
+        if resp.getcode() != 200:
+            log_error(f"API code inaspettato {resp.getcode()} per {url}")
+            return None
+        return json.loads(resp.read().decode('utf-8'))
+    except urllib.error.HTTPError as e:
+        return handle_http_error(e)
+    except Exception as e:
+        log_error(f"richiesta API fallita {url}: {e}")
+    return None
 
-def get_latest_online_version(api_url):
-    """Recupera l'ultima versione disponibile online"""
-    global version_cache, cache_expiration
-    
-    # Controlla la cache
-    current_time = time.time()
-    if api_url in version_cache and current_time < cache_expiration:
-        return version_cache[api_url]
-    
+# --- Nuove funzioni helper per gestione versioni ---
+def parse_addon_xml_version(addon_xml_path):
+    """Parsa addon.xml per estrarre la versione"""
     try:
-        # Crea la richiesta
-        req = urllib.request.Request(api_url)
-        req.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)')
-        
-        # Esegui la richiesta
-        with urllib.request.urlopen(req, timeout=10) as response:
-            if response.getcode() != 200:
-                return None
+        import xml.etree.ElementTree as ET
+        tree = ET.parse(addon_xml_path)
+        root = tree.getroot()
+        return root.get('version', '0.0.0')
+    except Exception as e:
+        log_error(f"Errore parsing addon.xml: {e}")
+    return '0.0.0'
+
+def is_version_greater(v1, v2):
+    """Confronta due versioni nel formato semantico (major.minor.patch)"""
+    def parse_version(v):
+        parts = []
+        for part in v.split('.'):
+            try:
+                parts.append(int(part))
+            except ValueError:
+                # Gestione componenti non numeriche
+                parts.append(0)
+        # Completa con zeri se mancanti
+        while len(parts) < 3:
+            parts.append(0)
+        return parts
+    
+    v1_parts = parse_version(v1)
+    v2_parts = parse_version(v2)
+    
+    return v1_parts > v2_parts
+
+# --- Gestione Commit ---
+def read_last_commit():
+    """Legge l'ultimo commit memorizzato localmente"""
+    try:
+        if os.path.exists(LAST_COMMIT_FILE):
+            with open(LAST_COMMIT_FILE, 'r') as f:
+                return f.read().strip()
+    except Exception as e:
+        log_error(f"lettura ultimo commit: {e}")
+    return ''
+
+def write_last_commit(sha):
+    """Salva lo SHA del commit corrente"""
+    try:
+        with open(LAST_COMMIT_FILE, 'w') as f:
+            f.write(sha)
+    except Exception as e:
+        log_error(f"scrittura ultimo commit: {e}")
+
+# --- Remote Data ---
+def get_remote_commit():
+    """Ottiene l'ultimo commit SHA dal ramo remoto"""
+    data = github_api_request(f"/commits/{github_branch}")
+    return data.get('sha', '') if data else ''
+
+def get_remote_file_list():
+    """Ottiene la lista completa dei file dal repository remoto"""
+    data = github_api_request(f"/git/trees/{github_branch}?recursive=1")
+    if not data:
+        return []
+    return [item['path'] for item in data.get('tree', []) if item.get('type') == 'blob']
+
+# --- Sincronizzazione File ---
+def sync_orphan_files(remote_paths):
+    """Rimuove i file locali non presenti nel repository remoto"""
+    for root, _, files in os.walk(ADDON_PATH, topdown=False):
+        for name in files:
+            full_path = os.path.join(root, name)
+            rel_path = os.path.relpath(full_path, ADDON_PATH).replace('\\', '/')
+            
+            if rel_path in IGNORE_FILES:
+                continue
                 
-            data = json.loads(response.read().decode('utf-8'))
-            version = data.get('tag_name', '')
-            
-            # Pulisci la versione (rimuovi 'v' iniziale)
-            version = re.sub(r'^v', '', version, flags=re.IGNORECASE)
-            
-            # Aggiorna la cache
-            version_cache[api_url] = version
-            cache_expiration = current_time + CACHE_DURATION
-            
-            log(f"Versione online da {api_url}: {version}", xbmc.LOGINFO)
-            return version
-            
-    except Exception as e:
-        log(f"Errore accesso a {api_url}: {str(e)}", xbmc.LOGERROR)
-        return None
-
-def compare_versions(v1, v2):
-    """Confronta due versioni"""
-    if not v1 or not v2:
-        return 0
+            if rel_path not in remote_paths:
+                try:
+                    os.remove(full_path)
+                    log_info(f"Rimosso file orfano: {rel_path}")
+                except Exception as e:
+                    log_error(f"Errore rimozione file orfano {rel_path}: {e}")
         
-    # Normalizza le versioni
-    v1 = v1.replace('-', '.').lower()
-    v2 = v2.replace('-', '.').lower()
-    
-    # Estrai parti numeriche
-    v1_parts = []
-    for part in v1.split('.'):
-        if part.isdigit():
-            v1_parts.append(int(part))
-    
-    v2_parts = []
-    for part in v2.split('.'):
-        if part.isdigit():
-            v2_parts.append(int(part))
-    
-    # Confronta parte per parte
-    for i in range(max(len(v1_parts), len(v2_parts))):
-        v1_val = v1_parts[i] if i < len(v1_parts) else 0
-        v2_val = v2_parts[i] if i < len(v2_parts) else 0
-        
-        if v1_val > v2_val:
-            return 1
-        elif v1_val < v2_val:
-            return -1
-    
-    return 0
+        # Rimuove cartelle vuote
+        if not os.listdir(root) and root != ADDON_PATH:
+            try:
+                os.rmdir(root)
+                log_info(f"Rimossa cartella vuota: {os.path.relpath(root, ADDON_PATH)}")
+            except Exception as e:
+                log_error(f"Errore rimozione cartella vuota: {e}")
 
-def check_for_updates():
-    """Controlla se sono disponibili aggiornamenti online"""
-    updates = []
-    
+def download_content(rel_path):
+    """Scarica il contenuto di un file dal repository"""
+    url = f"https://raw.githubusercontent.com/{github_user}/{github_repo}/{github_branch}/{rel_path}"
     try:
-        # Controllo YouTube
-        installed_yt = get_installed_addon_version("plugin.video.youtube")
-        if installed_yt:
-            online_yt = get_latest_online_version(YOUTUBE_API_URL)
-            if online_yt and compare_versions(installed_yt, online_yt) < 0:
-                log(f"AGGIORNAMENTO DISPONIBILE: YouTube {installed_yt} → {online_yt}", xbmc.LOGINFO)
-                updates.append(("YouTube", installed_yt, online_yt))
-        
-        # Controllo Trakt
-        installed_trakt = get_installed_addon_version("script.trakt")
-        if installed_trakt:
-            online_trakt = get_latest_online_version(TRAKT_API_URL)
-            if online_trakt and compare_versions(installed_trakt, online_trakt) < 0:
-                log(f"AGGIORNAMENTO DISPONIBILE: Trakt {installed_trakt} → {online_trakt}", xbmc.LOGINFO)
-                updates.append(("Trakt", installed_trakt, online_trakt))
+        with urllib.request.urlopen(url, timeout=20) as response:
+            return response.read()
+    except urllib.error.HTTPError as e:
+        handle_http_error(e)
     except Exception as e:
-        log(f"ERRORE durante check_for_updates: {traceback.format_exc()}", xbmc.LOGERROR)
-    
-    return updates
+        log_error(f"Errore download {rel_path}: {e}")
+    return None
 
-def show_update_notification(updates):
-    """Mostra una notifica se ci sono aggiornamenti disponibili"""
-    if not updates:
+def sync_all(remote_paths):
+    """Sincronizza tutti i file con il repository remoto"""
+    for rel_path in remote_paths:
+        local_path = os.path.join(ADDON_PATH, rel_path)
+        remote_content = download_content(rel_path)
+        
+        if remote_content is None:
+            continue
+            
+        # Controlla se il file esiste ed è identico
+        file_exists = os.path.exists(local_path)
+        if file_exists:
+            try:
+                with open(local_path, 'rb') as local_file:
+                    if local_file.read() == remote_content:
+                        continue
+            except Exception as e:
+                log_error(f"Errore lettura file locale {rel_path}: {e}")
+        
+        # Crea directory se necessario e scrive il file
+        try:
+            os.makedirs(os.path.dirname(local_path), exist_ok=True)
+            with open(local_path, 'wb') as local_file:
+                local_file.write(remote_content)
+            log_info(f"File {'aggiornato' if file_exists else 'scaricato'}: {rel_path}")
+        except Exception as e:
+            log_error(f"Errore scrittura file {rel_path}: {e}")
+    
+    # Rimuove i file orfani
+    sync_orphan_files(remote_paths)
+
+# --- Pulizia Origini Temporanee con verifica versione ---
+def cleanup_temp_install_folders():
+    """Pulizia avanzata con controllo versione e aggiornamento"""
+    cleaned_something = False
+    messages = []
+    
+    # Configurazione per le installazioni temporanee
+    temp_installs = [
+        {
+            "addon_id": "plugin.video.youtube",
+            "source_name": "YouTube Install",
+            "virtual_path": "special://profile/addon_data/youtube_install/"
+        },
+        {
+            "addon_id": "script.trakt",
+            "source_name": "Trakt Install",
+            "virtual_path": "special://profile/addon_data/trakt_install/"
+        }
+    ]
+    
+    for install in temp_installs:
+        addon_id = install["addon_id"]
+        source_name = install["source_name"]
+        dest_dir = xbmcvfs.translatePath(install['virtual_path'])
+        addon_xml_path = os.path.join(dest_dir, 'addon.xml')
+        cleaned_this = False
+        
+        # Verifica se l'addon è installato
+        is_installed = xbmc.getCondVisibility(f"System.HasAddon({addon_id})")
+        
+        # Verifica se esiste la cartella temporanea
+        temp_folder_exists = os.path.exists(dest_dir)
+        temp_version_available = temp_folder_exists and os.path.exists(addon_xml_path)
+        
+        # Ottieni versione installata
+        installed_version = '0.0.0'
+        if is_installed:
+            try:
+                installed_version = xbmcaddon.Addon(addon_id).getAddonInfo('version')
+            except:
+                installed_version = '0.0.0'
+                log_error(f"Impossibile ottenere versione per {addon_id}")
+        
+        # Ottieni versione nella cartella temporanea
+        temp_version = '0.0.0'
+        if temp_version_available:
+            temp_version = parse_addon_xml_version(addon_xml_path)
+            log_info(f"Versione temporanea {addon_id}: {temp_version}")
+        
+        # Controlla se è disponibile una versione più nuova
+        update_available = (
+            temp_version_available and 
+            is_installed and 
+            is_version_greater(temp_version, installed_version)
+        )
+        
+        # Gestione aggiornamento
+        if update_available:
+            msg = f"Disponibile aggiornamento {addon_id}: {installed_version} → {temp_version}"
+            messages.append(msg)
+            log_info(msg)
+            
+            # Prompt per aggiornamento
+            if xbmcgui.Dialog().yesno(
+                ADDON_NAME,
+                f"Nuova versione disponibile per {addon_id}!\n\n"
+                f"Versione attuale: {installed_version}\n"
+                f"Nuova versione: {temp_version}\n\n"
+                "Vuoi aggiornare ora?",
+                yeslabel="Aggiorna",
+                nolabel="Ignora"
+            ):
+                # Copia i file dalla cartella temporanea all'addon
+                addon_path = xbmcvfs.translatePath(f"special://home/addons/{addon_id}")
+                try:
+                    # Copia ricorsiva sovrascrivendo i file
+                    if os.path.exists(addon_path):
+                        shutil.rmtree(addon_path)
+                    shutil.copytree(dest_dir, addon_path)
+                    
+                    msg = f"Aggiornato {addon_id} alla versione {temp_version}"
+                    messages.append(msg)
+                    log_info(msg)
+                    cleaned_this = True
+                except Exception as e:
+                    error_msg = f"Errore aggiornamento {addon_id}: {e}"
+                    messages.append(error_msg)
+                    log_error(error_msg)
+        
+        # Pulizia standard (solo se non abbiamo appena aggiornato o se non installato)
+        if not cleaned_this:
+            # Rimuove da sources.xml
+            fake_repo = {
+                "name": source_name,
+                "url": install['virtual_path']
+            }
+            
+            if sources_manager.remove_source_from_xml(fake_repo):
+                msg = f"Rimossa sorgente {source_name} da sources.xml"
+                messages.append(msg)
+                log_info(msg)
+                cleaned_this = True
+
+            # Rimuove cartella fisica
+            if os.path.exists(dest_dir):
+                try:
+                    shutil.rmtree(dest_dir, ignore_errors=True)
+                    msg = f"Rimossa cartella {source_name}: {dest_dir}"
+                    messages.append(msg)
+                    log_info(msg)
+                    cleaned_this = True
+                except Exception as e:
+                    error_msg = f"Errore rimozione cartella {source_name}: {e}"
+                    messages.append(error_msg)
+                    log_error(error_msg)
+            else:
+                log_info(f"Cartella non trovata: {dest_dir}")
+
+        if cleaned_this:
+            cleaned_something = True
+
+    # Notifica e richiedi riavvio
+    if cleaned_something:
+        log_info("Pulizia/aggiornamento completato")
+        summary = "Operazioni completate:\n" + "\n".join(f"- {msg}" for msg in messages)
+        
+        xbmcgui.Dialog().notification(
+            ADDON_NAME,
+            "Pulizia/aggiornamento completato",
+            ICON_PATH,
+            5000
+        )
+        
+        if xbmcgui.Dialog().yesno(
+            ADDON_NAME,
+            f"{summary}\n\nRiavviare Kodi per applicare le modifiche?",
+            yeslabel="Riavvia ora",
+            nolabel="Più tardi"
+        ):
+            xbmc.executebuiltin("RestartApp")
+    else:
+        log_info("Nessuna operazione di pulizia/aggiornamento necessaria")
+
+# --- Main Service Functions ---
+def check_self_update():
+    """Controlla e applica aggiornamenti dal repository"""
+    if not github_user or not github_repo:
+        log_error("Parametri GitHub mancanti nelle impostazioni")
+        return
+    
+    remote_sha = get_remote_commit()
+    if not remote_sha:
+        return
+    
+    last_sha = read_last_commit()
+    if remote_sha == last_sha:
+        log_info("Nessun aggiornamento disponibile")
+        return
+    
+    log_info(f"Trovato nuovo commit: {remote_sha}")
+    remote_paths = get_remote_file_list()
+    
+    if not remote_paths:
+        log_error("Nessun file trovato nel repository remoto")
         return
     
     try:
-        message = "Sono disponibili aggiornamenti:\n\n"
-        for update in updates:
-            name, old_ver, new_ver = update
-            message += f"[COLOR lime]{name}[/COLOR]:\n"
-            message += f"• Versione attuale: [COLOR red]{old_ver}[/COLOR]\n"
-            message += f"• Nuova versione: [COLOR yellow]{new_ver}[/COLOR]\n\n"
-        
-        message += "Per installare gli aggiornamenti:\n"
-        message += "1. Apri l'addon [B]Installer[/B]\n"
-        message += "2. Vai alla sezione [B]YouTube[/B] o [B]Trakt[/B]\n"
-        message += "3. Segui le istruzioni per scaricare la nuova versione"
-        
-        # Mostra dialog con informazioni dettagliate
-        xbmcgui.Dialog().ok(f"{ADDON_NAME} - Aggiornamenti disponibili", message)
+        sync_all(remote_paths)
+        write_last_commit(remote_sha)
+        xbmcgui.Dialog().notification(
+            ADDON_NAME,
+            f"Addon aggiornato ({remote_sha[:7]})",
+            ICON_PATH,
+            5000
+        )
+        log_info("Aggiornamento completato con successo")
     except Exception as e:
-        log(f"ERRORE durante show_update_notification: {traceback.format_exc()}", xbmc.LOGERROR)
+        log_error(f"Errore durante la sincronizzazione: {e}")
+        xbmcgui.Dialog().notification(
+            ADDON_NAME,
+            "Errore durante l'aggiornamento!",
+            xbmcgui.NOTIFICATION_ERROR,
+            5000
+        )
 
-def main():
-    """Funzione principale del service"""
-    log(f"{ADDON_NAME} service avviato", xbmc.LOGINFO)
-    monitor = xbmc.Monitor()
-    
-    # Attendi 60 secondi per dare tempo a Kodi di avviarsi completamente
-    monitor.waitForAbort(60)
-    
-    # Controllo iniziale
-    updates = check_for_updates()
-    if updates:
-        log("Trovati aggiornamenti disponibili", xbmc.LOGINFO)
-        show_update_notification(updates)
-    else:
-        log("Nessun aggiornamento disponibile", xbmc.LOGINFO)
-    
-    # Controlla ogni 6 ore (21600 secondi)
-    while not monitor.abortRequested():
-        if monitor.waitForAbort(21600):
-            break
-        
-        updates = check_for_updates()
-        if updates:
-            log("Trovati aggiornamenti (controllo periodico)", xbmc.LOGINFO)
-            show_update_notification(updates)
-
-    log(f"{ADDON_NAME} service terminato", xbmc.LOGINFO)
-
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    log_info("Servizio avviato")
+    check_self_update()
+    cleanup_temp_install_folders()
+    log_info("Servizio terminato")
