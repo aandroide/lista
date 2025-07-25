@@ -274,22 +274,21 @@ def cleanup_temp_install_folders():
         addon_xml_path = os.path.join(dest_dir, 'addon.xml')
         cleaned_this = False
         
-        # Verifica se l'addon è installato
-        is_installed = xbmc.getCondVisibility(f"System.HasAddon({addon_id})")
-        
-        # Verifica se esiste la cartella temporanea
+        # Percorsi installazione reale
+        installed_dir = xbmcvfs.translatePath(f"special://home/addons/{addon_id}")
+        installed_xml = os.path.join(installed_dir, 'addon.xml')
         temp_folder_exists = os.path.exists(dest_dir)
         temp_version_available = temp_folder_exists and os.path.exists(addon_xml_path)
-        
-        # Se la cartella temporanea esiste ma l'addon non è installato
-        if temp_folder_exists and not is_installed:
-            log_info(f"Cartella temporanea presente per {addon_id} ma addon non installato - Mantenuta per installazione futura")
-            continue  # Salta alla prossima iterazione senza pulire
-            
-        # Se l'addon è installato procedi con i controlli
-        if is_installed:
-            # Ottieni versione installata
-            installed_version = get_installed_addon_version(addon_id)
+
+        # Se esiste temp ma non esiste addon.xml installato, è una prima installazione
+        if temp_folder_exists and not os.path.exists(installed_xml):
+            log_info(f"{addon_id} non installato ma trovato in temp → pronto per installazione")
+            continue
+
+        # Se l'addon è installato (esiste addon.xml nella cartella ufficiale)
+        if os.path.exists(installed_xml):
+            # Ottieni versione installata leggendo addon.xml
+            installed_version = parse_addon_xml_version(installed_xml)
             log_info(f"Versione installata di {addon_id}: {installed_version}")
             
             # Ottieni versione nella cartella temporanea
@@ -324,12 +323,11 @@ def cleanup_temp_install_folders():
                     nolabel="Ignora"
                 ):
                     # Copia i file dalla cartella temporanea all'addon
-                    addon_path = xbmcvfs.translatePath(f"special://home/addons/{addon_id}")
                     try:
                         # Copia ricorsiva sovrascrivendo i file
-                        if os.path.exists(addon_path):
-                            shutil.rmtree(addon_path)
-                        shutil.copytree(dest_dir, addon_path)
+                        if os.path.exists(installed_dir):
+                            shutil.rmtree(installed_dir)
+                        shutil.copytree(dest_dir, installed_dir)
                         
                         msg = f"Aggiornato {addon_id} alla versione {temp_version}"
                         messages.append(msg)
