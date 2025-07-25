@@ -273,6 +273,8 @@ def install_zip_manualmente(zip_path, addon_id):
         shutil.copytree(extracted_addon_path, addon_install_path)
 
         xbmc.executebuiltin("UpdateLocalAddons")
+        xbmc.executebuiltin(f"RunAddon({addon_id})")
+
         log_info(f"Installazione completata per {addon_id}")
         return True
 
@@ -356,7 +358,7 @@ def cleanup_temp_install_folders():
             messages.append(msg)
             log_info(msg)
             
-            # Crea percorso ZIP temporaneo
+            # Crea percorso ZIP
             latest_zip_path = os.path.join(dest_dir, f"{addon_id}.zip")
             
             # Prompt per aggiornamento
