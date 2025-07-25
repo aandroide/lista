@@ -351,29 +351,35 @@ def cleanup_temp_install_folders():
                 yeslabel="Aggiorna",
                 nolabel="Ignora"
             ):
+                # Apri il file manager per installazione manuale
+                log_info(f"Apertura file manager per installazione ZIP: {latest_zip_path}")
+                
+                # Converti il percorso in formato URI
+                if dest_dir.startswith("special://"):
+                    dest_folder_uri = dest_dir
+                else:
+                    dest_folder_uri = f"file://{dest_dir}"
+                
+                # Apri la finestra di installazione da ZIP
+                xbmc.executebuiltin(f'ActivateWindow(installzip,"{dest_folder_uri}",return)')
+                
+                # Scrivi un file marker per ricordare l'azione dell'utente
+                marker_path = os.path.join(dest_dir, ".install_prompted")
                 try:
-                    # Installa direttamente dallo ZIP
-                    log_info(f"Installazione da ZIP: {os.path.basename(latest_zip_path)}")
-                    xbmc.executebuiltin(f'InstallAddon({addon_id})')
-                    
-                    # Opzionale: rimuovi lo ZIP dopo l'installazione
-                    try:
-                        os.remove(latest_zip_path)
-                        log_info(f"Rimosso file ZIP: {os.path.basename(latest_zip_path)}")
-                    except Exception as e:
-                        log_error(f"Errore rimozione ZIP: {e}")
-                    
-                    msg = f"Aggiornato {addon_id} alla versione {temp_version}"
-                    messages.append(msg)
-                    log_info(msg)
-                    cleaned_this = True
+                    with open(marker_path, 'w') as marker:
+                        marker.write(temp_version)
+                    log_info("Flag .install_prompted scritto con versione ZIP")
                 except Exception as e:
-                    error_msg = f"Errore aggiornamento {addon_id}: {e}"
-                    messages.append(error_msg)
-                    log_error(error_msg)
+                    log_error(f"Errore scrittura .install_prompted: {e}")
+                
+                msg = f"{addon_id} pronto per aggiornamento manuale da ZIP"
+                messages.append(msg)
+                log_info(msg)
+                # Non contrassegniamo come pulito, verrà gestito al prossimo riavvio
+                cleaned_this = False
         
-        # Pulizia quando le versioni sono identiche o quella installata è più nuova
-        elif versions_equal or installed_is_newer:
+        # Pulizia quando le versioni sono identiche E è stato fatto il prompt
+        elif versions_equal and os.path.exists(os.path.join(dest_dir, ".install_prompted")):
             # Rimuove da sources.xml
             fake_repo = {
                 "name": source_name,
@@ -397,6 +403,15 @@ def cleanup_temp_install_folders():
                             log_info(f"Rimosso file ZIP: {zip_file}")
                         except Exception as e:
                             log_error(f"Errore rimozione ZIP: {e}")
+                    
+                    # Rimuovi il marker
+                    marker_path = os.path.join(dest_dir, ".install_prompted")
+                    if os.path.exists(marker_path):
+                        try:
+                            os.remove(marker_path)
+                            log_info("Rimosso flag .install_prompted")
+                        except Exception as e:
+                            log_error(f"Errore rimozione flag .install_prompted: {e}")
                     
                     msg = f"Pulizia completata per {source_name}"
                     messages.append(msg)
