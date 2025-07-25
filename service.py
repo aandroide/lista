@@ -348,39 +348,72 @@ def cleanup_temp_install_folders():
                 f"Versione attuale: {installed_version}\n"
                 f"Nuova versione: {temp_version}\n\n"
                 "Vuoi aggiornare ora?",
-                yeslabel="Aggiorna",
-                nolabel="Ignora"
+                yeslabel="Aggiorna automaticamente",
+                nolabel="Annulla"
             ):
-                # Aggiungi la sorgente a sources.xml
-                fake_repo = {
-                    "name": source_name,
-                    "url": install['virtual_path']
-                }
-                sources_manager.add_source_to_xml(fake_repo)
+                # Tentativo di installazione automatica
+                log_info(f"Tentativo installazione automatica dello ZIP: {latest_zip_path}")
                 
-                # Apri la finestra di installazione da ZIP usando il nome della sorgente
-                log_info(f"Apertura file manager per installazione ZIP: {source_name}")
-                log_info(f"Tentativo di aprire: ActivateWindow(installzip, '{source_name}', return)")
-                
-                # Tentativo di aprire la finestra di installazione
                 try:
-                    xbmc.executebuiltin(f'ActivateWindow(installzip,"{source_name}",return)')
-                    log_info("ActivateWindow eseguita con successo")
+                    # Primo metodo: InstallAddonFromZip (più diretto)
+                    xbmc.executebuiltin(f'InstallAddonFromZip("{latest_zip_path}")')
+                    log_info("InstallAddonFromZip eseguito con successo")
+                    
+                    # Scrittura marker per pulizia futura
+                    marker_path = os.path.join(dest_dir, ".install_prompted")
+                    try:
+                        with open(marker_path, 'w') as marker:
+                            marker.write(temp_version)
+                        log_info("Flag .install_prompted scritto con versione ZIP")
+                    except Exception as e:
+                        log_error(f"Errore scrittura .install_prompted: {e}")
+                    
+                    msg = f"{addon_id} aggiornato automaticamente da ZIP"
+                    messages.append(msg)
+                    log_info(msg)
+                    
+                    # Notifica all'utente
+                    xbmcgui.Dialog().notification(
+                        ADDON_NAME,
+                        f"Aggiornamento {addon_id} avviato!",
+                        ICON_PATH,
+                        3000
+                    )
+                    
                 except Exception as e:
-                    log_error(f"Errore nell'esecuzione di ActivateWindow: {e}")
-                
-                # Scrivi un file marker per ricordare l'azione dell'utente
-                marker_path = os.path.join(dest_dir, ".install_prompted")
-                try:
-                    with open(marker_path, 'w') as marker:
-                        marker.write(temp_version)
-                    log_info("Flag .install_prompted scritto con versione ZIP")
-                except Exception as e:
-                    log_error(f"Errore scrittura .install_prompted: {e}")
-                
-                msg = f"{addon_id} pronto per aggiornamento manuale da ZIP"
-                messages.append(msg)
-                log_info(msg)
+                    log_error(f"Errore in InstallAddonFromZip: {e}")
+                    
+                    # Fallback: metodo alternativo
+                    log_info("Tentativo con metodo alternativo: RunPlugin")
+                    
+                    try:
+                        # Secondo metodo: RunPlugin (più compatibile)
+                        xbmc.executebuiltin(f'RunPlugin("zip://{latest_zip_path}")')
+                        log_info("RunPlugin eseguito con successo")
+                        
+                        # Scrittura marker per pulizia futura
+                        marker_path = os.path.join(dest_dir, ".install_prompted")
+                        try:
+                            with open(marker_path, 'w') as marker:
+                                marker.write(temp_version)
+                            log_info("Flag .install_prompted scritto con versione ZIP")
+                        except Exception as e:
+                            log_error(f"Errore scrittura .install_prompted: {e}")
+                        
+                        msg = f"{addon_id} aggiornato con metodo alternativo"
+                        messages.append(msg)
+                        log_info(msg)
+                        
+                    except Exception as e2:
+                        log_error(f"Errore anche nel metodo alternativo: {e2}")
+                        
+                        # Ultimo fallback: apri la finestra di installazione
+                        log_info("Fallback all'apertura manuale")
+                        xbmc.executebuiltin('InstallFromZip')
+                        
+                        msg = f"Apri manualmente la finestra per installare {addon_id}"
+                        messages.append(msg)
+                        log_info(msg)
         
         # Pulizia quando le versioni sono identiche E è stato fatto il prompt
         elif versions_equal and os.path.exists(os.path.join(dest_dir, ".install_prompted")):
