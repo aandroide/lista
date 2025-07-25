@@ -32,8 +32,8 @@ ADDON_PATH = xbmcvfs.translatePath(os.path.join('special://home/addons', ADDON_I
 IGNORE_FILES = {'.firstrun'}
 
 # Impostazioni GitHub
-github_user = ADDON.getSetting('github_user'))
-github_repo = ADDON.getSetting('github_repo'))
+github_user = ADDON.getSetting('github_user')
+github_repo = ADDON.getSetting('github_repo')
 github_branch = ADDON.getSetting('github_branch') or 'main'
 
 # --- Helper Generici ---
