@@ -10,7 +10,8 @@ Repo_Addon_installer-Service per Kodi addon: sincronizza i file remoti
 
 import xbmc, xbmcaddon, xbmcvfs, xbmcgui
 import urllib.request, urllib.error
-import json, os, shutil, zipfile, tempfile, traceback
+import json, os, shutil, re, zipfile
+import xml.etree.ElementTree as ET
 from resources.lib import sources_manager
 
 # --- Configurazione Addon ---
@@ -92,11 +93,10 @@ def github_api_request(path, timeout=10):
         log_error(f"richiesta API fallita {url}: {e}")
     return None
 
-# --- Nuove funzioni helper per gestione versioni ---
+# --- Funzioni helper per gestione versioni ---
 def parse_addon_xml_version(addon_xml_path):
     """Parsa addon.xml per estrarre la versione"""
     try:
-        import xml.etree.ElementTree as ET
         tree = ET.parse(addon_xml_path)
         root = tree.getroot()
         return root.get('version', '0.0.0')
@@ -104,40 +104,53 @@ def parse_addon_xml_version(addon_xml_path):
         log_error(f"Errore parsing addon.xml: {e}")
     return '0.0.0'
 
+def get_version_from_zip(zip_path):
+    """Estrae la versione da addon.xml dentro uno ZIP"""
+    try:
+        with zipfile.ZipFile(zip_path, 'r') as z:
+            for name in z.namelist():
+                if name.endswith('addon.xml') or name == 'addon.xml':
+                    with z.open(name) as f:
+                        content = f.read().decode('utf-8')
+                        root = ET.fromstring(content)
+                        version = root.get('version', '0.0.0')
+                        return version
+    except Exception as e:
+        log_error(f"Errore lettura addon.xml da ZIP {zip_path}: {e}")
+    return None
+
+def normalize_version(version_str):
+    """Normalizza la stringa di versione per il confronto"""
+    # Rimuove spazi e caratteri speciali, converte in minuscolo
+    return re.sub(r'[^a-z0-9\.]', '', version_str.lower())
+
 def is_version_greater(v1, v2):
-    """Confronta due versioni nel formato semantico (major.minor.patch)"""
-    def parse_version(v):
-        parts = []
-        for part in v.split('.'):
-            try:
-                parts.append(int(part))
-            except ValueError:
-                # Gestione componenti non numeriche
-                parts.append(0)
-        # Completa con zeri se mancanti
-        while len(parts) < 3:
-            parts.append(0)
-        return parts
-    
-    v1_parts = parse_version(v1)
-    v2_parts = parse_version(v2)
-    
-    return v1_parts > v2_parts
+    """Confronta versioni con suffissi alfanumerici usando LooseVersion"""
+    try:
+        from distutils.version import LooseVersion
+        v1_norm = normalize_version(v1)
+        v2_norm = normalize_version(v2)
+        result = LooseVersion(v1_norm) > LooseVersion(v2_norm)
+        log_info(f"is_version_greater({v1}, {v2}): {v1_norm} > {v2_norm} = {result}")
+        return result
+    except Exception as e:
+        log_error(f"Errore confronto versioni {v1} vs {v2}: {e}")
+        # Fallback a confronto semplice
+        return v1 > v2
 
 def are_versions_equal(v1, v2):
     """Controlla se due versioni sono identiche"""
-    def parse_version(v):
-        parts = []
-        for part in v.split('.'):
-            try:
-                parts.append(int(part))
-            except ValueError:
-                parts.append(0)
-        while len(parts) < 3:
-            parts.append(0)
-        return parts
-    
-    return parse_version(v1) == parse_version(v2)
+    try:
+        from distutils.version import LooseVersion
+        v1_norm = normalize_version(v1)
+        v2_norm = normalize_version(v2)
+        result = LooseVersion(v1_norm) == LooseVersion(v2_norm)
+        log_info(f"are_versions_equal({v1}, {v2}): {v1_norm} == {v2_norm} = {result}")
+        return result
+    except Exception as e:
+        log_error(f"Errore confronto uguaglianza versioni {v1} vs {v2}: {e}")
+        # Fallback a confronto semplice
+        return v1 == v2
 
 # --- Gestione Commit ---
 def read_last_commit():
@@ -240,55 +253,6 @@ def sync_all(remote_paths):
     # Rimuove i file orfani
     sync_orphan_files(remote_paths)
 
-# --- Installazione da ZIP ---
-def install_zip_manualmente(zip_path, addon_id):
-    """
-    Installa manualmente un addon Kodi da uno ZIP:
-    - Estrae il contenuto
-    - Rimuove la versione esistente
-    - Copia i nuovi file
-    - Aggiorna gli addon localmente
-    """
-    try:
-        addons_dir = xbmcvfs.translatePath("special://home/addons/")
-        temp_dir = tempfile.mkdtemp()
-        
-        log_info(f"Estrazione ZIP in: {temp_dir}")
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            zip_ref.extractall(temp_dir)
-
-        estratte = os.listdir(temp_dir)
-        if not estratte:
-            log_error("Nessun contenuto estratto dallo ZIP")
-            return False
-
-        extracted_addon_path = os.path.join(temp_dir, estratte[0])
-        addon_install_path = os.path.join(addons_dir, addon_id)
-
-        if os.path.exists(addon_install_path):
-            log_info(f"Rimozione addon esistente: {addon_install_path}")
-            shutil.rmtree(addon_install_path, ignore_errors=True)
-
-        log_info(f"Installazione nuovo addon da: {extracted_addon_path}")
-        shutil.copytree(extracted_addon_path, addon_install_path)
-
-        xbmc.executebuiltin("UpdateLocalAddons")
-        xbmc.executebuiltin(f"RunAddon({addon_id})")
-
-        log_info(f"Installazione completata per {addon_id}")
-        return True
-
-    except Exception as e:
-        log_error(f"Errore installazione da ZIP: {e}")
-        log_error(traceback.format_exc())
-        return False
-    finally:
-        # Pulizia cartella temporanea
-        try:
-            shutil.rmtree(temp_dir, ignore_errors=True)
-        except:
-            pass
-
 # --- Pulizia Origini Temporanee con verifica versione ---
 def cleanup_temp_install_folders():
     """Pulizia avanzata con controllo versione e aggiornamento"""
@@ -313,53 +277,69 @@ def cleanup_temp_install_folders():
         addon_id = install["addon_id"]
         source_name = install["source_name"]
         dest_dir = xbmcvfs.translatePath(install['virtual_path'])
-        addon_xml_path = os.path.join(dest_dir, 'addon.xml')
         cleaned_this = False
         
-        # Verifica se l'addon è installato
-        is_installed = xbmc.getCondVisibility(f"System.HasAddon({addon_id})")
-        
-        # Verifica se esiste la cartella temporanea
+        # Percorsi installazione reale
+        installed_dir = xbmcvfs.translatePath(f"special://home/addons/{addon_id}")
+        installed_xml = os.path.join(installed_dir, 'addon.xml')
         temp_folder_exists = os.path.exists(dest_dir)
-        temp_version_available = temp_folder_exists and os.path.exists(addon_xml_path)
+
+        # Se non esiste la cartella temporanea, salta
+        if not temp_folder_exists:
+            log_info(f"Cartella temporanea non trovata per {addon_id}: {dest_dir}")
+            continue
+
+        # Cerca file ZIP nella cartella temporanea
+        zip_files = [f for f in os.listdir(dest_dir)
+                     if f.lower().endswith('.zip') and 
+                     addon_id.replace('.', '').lower() in f.replace('.', '').replace('-', '').replace('_', '').lower()]
         
-        # Ottieni versione installata
-        installed_version = '0.0.0'
-        if is_installed:
-            try:
-                installed_version = xbmcaddon.Addon(addon_id).getAddonInfo('version')
-            except:
-                installed_version = '0.0.0'
-                log_error(f"Impossibile ottenere versione per {addon_id}")
+        log_info(f"Trovati {len(zip_files)} file ZIP per {addon_id} in {dest_dir}")
+        for z in zip_files:
+            log_info(f"  - {z}")
+
+        # Se esiste temp ma non esiste addon.xml installato, è una prima installazione
+        if not os.path.exists(installed_xml):
+            log_info(f"{addon_id} non installato ma trovato in temp → pronto per installazione")
+            continue
+
+        # Ottieni versione installata leggendo addon.xml
+        installed_version = parse_addon_xml_version(installed_xml)
+        log_info(f"Versione installata di {addon_id}: {installed_version}")
         
-        # Ottieni versione nella cartella temporanea
-        temp_version = '0.0.0'
-        if temp_version_available:
-            temp_version = parse_addon_xml_version(addon_xml_path)
-            log_info(f"Versione temporanea {addon_id}: {temp_version}")
+        # Se ci sono ZIP, cerca la versione
+        temp_version = None
+        latest_zip_path = None
         
-        # Controlla se è disponibile una versione più nuova
-        update_available = (
-            temp_version_available and 
-            is_installed and 
-            is_version_greater(temp_version, installed_version)
-        )
+        for zip_file in zip_files:
+            zip_path = os.path.join(dest_dir, zip_file)
+            version = get_version_from_zip(zip_path)
+            if version:
+                temp_version = version
+                latest_zip_path = zip_path
+                log_info(f"Versione letta da {zip_file}: {temp_version}")
+                break
         
-        # Controlla se le versioni sono identiche
-        versions_equal = (
-            temp_version_available and 
-            is_installed and 
-            are_versions_equal(temp_version, installed_version)
-        )
+        # Se non è stata trovata nessuna versione valida, salta
+        if not temp_version:
+            log_info(f"Nessuna versione valida trovata negli ZIP per {addon_id}")
+            continue
         
-        # Gestione aggiornamento
+        # Calcola i risultati del confronto
+        update_available = is_version_greater(temp_version, installed_version)
+        versions_equal = are_versions_equal(temp_version, installed_version)
+        installed_is_newer = is_version_greater(installed_version, temp_version)
+        
+        # DEBUG: Log dei risultati
+        log_info(f"  Update disponibile? {update_available}")
+        log_info(f"  Versioni uguali? {versions_equal}")
+        log_info(f"  Installata più recente? {installed_is_newer}")
+        
+        # Gestione aggiornamento (METODO SICURO)
         if update_available:
             msg = f"Disponibile aggiornamento {addon_id}: {installed_version} → {temp_version}"
             messages.append(msg)
             log_info(msg)
-            
-            # Crea percorso ZIP
-            latest_zip_path = os.path.join(dest_dir, f"{addon_id}.zip")
             
             # Prompt per aggiornamento
             if xbmcgui.Dialog().yesno(
@@ -367,83 +347,94 @@ def cleanup_temp_install_folders():
                 f"Nuova versione disponibile per {addon_id}!\n\n"
                 f"Versione attuale: {installed_version}\n"
                 f"Nuova versione: {temp_version}\n\n"
-                "Vuoi aggiornare ora?",
-                yeslabel="Aggiorna",
+                "Vuoi installare manualmente ora?",
+                yeslabel="Apri installazione",
                 nolabel="Annulla"
             ):
-                # Installazione da ZIP
-                if install_zip_manualmente(latest_zip_path, addon_id):
-                    msg = f"Aggiornato {addon_id} alla versione {temp_version}"
-                    messages.append(msg)
-                    log_info(msg)
-                    cleaned_this = True
+                # Aggiunge la sorgente a sources.xml se mancante
+                fake_repo = {
+                    "name": source_name,
+                    "url": install['virtual_path']
+                }
+                
+                if sources_manager.add_source_to_xml(fake_repo):
+                    log_info(f"Aggiunta sorgente {source_name} a sources.xml")
+                
+                # Apre la finestra di installazione
+                xbmc.executebuiltin('InstallFromZip')
+                log_info("Aperta finestra di installazione da ZIP")
+                
+                # Scrittura marker per pulizia futura
+                marker_path = os.path.join(dest_dir, ".install_prompted")
+                try:
+                    with open(marker_path, 'w') as marker:
+                        marker.write(temp_version)
+                    log_info("Flag .install_prompted scritto con versione ZIP")
+                except Exception as e:
+                    log_error(f"Errore scrittura .install_prompted: {e}")
+                
+                # Notifica all'utente
+                xbmcgui.Dialog().notification(
+                    ADDON_NAME,
+                    f"Apri la sorgente '{source_name}'",
+                    ICON_PATH,
+                    5000
+                )
+                
+                # Istruzioni per l'utente
+                xbmcgui.Dialog().ok(
+                    ADDON_NAME,
+                    f"Passi per installare {addon_id}:\n\n"
+                    "1. Nella finestra apparsa, seleziona:\n"
+                    f"   » '{source_name}'\n\n"
+                    "2. Scegli il file ZIP con la versione:\n"
+                    f"   » {os.path.basename(latest_zip_path)}\n\n"
+                    "3. Conferma l'installazione"
+                )
+
+        # Pulizia quando le versioni sono identiche E è stato fatto il prompt
+        elif versions_equal and os.path.exists(os.path.join(dest_dir, ".install_prompted")):
+            # Rimuove da sources.xml
+            fake_repo = {
+                "name": source_name,
+                "url": install['virtual_path']
+            }
+            
+            if sources_manager.remove_source_from_xml(fake_repo):
+                msg = f"Rimossa sorgente {source_name} da sources.xml"
+                messages.append(msg)
+                log_info(msg)
+                cleaned_this = True
+
+            # Rimuove cartella fisica
+            if os.path.exists(dest_dir):
+                try:
+                    # Rimuovi tutti gli ZIP
+                    for zip_file in zip_files:
+                        zip_path = os.path.join(dest_dir, zip_file)
+                        try:
+                            os.remove(zip_path)
+                            log_info(f"Rimosso file ZIP: {zip_file}")
+                        except Exception as e:
+                            log_error(f"Errore rimozione ZIP: {e}")
                     
-                    # Rimuove la cartella temporanea dopo l'aggiornamento
-                    try:
-                        shutil.rmtree(dest_dir, ignore_errors=True)
-                        messages.append(f"Rimossa cartella temporanea {source_name}")
-                    except Exception as e:
-                        log_error(f"Errore rimozione cartella temporanea: {e}")
-                else:
-                    log_error(f"Fallita installazione manuale per {addon_id}")
-        
-        # Gestione pulizia SOLO quando le versioni sono identiche
-        elif versions_equal:
-            # Rimuove da sources.xml
-            fake_repo = {
-                "name": source_name,
-                "url": install['virtual_path']
-            }
-            
-            if sources_manager.remove_source_from_xml(fake_repo):
-                msg = f"Rimossa sorgente {source_name} da sources.xml"
-                messages.append(msg)
-                log_info(msg)
-                cleaned_this = True
-
-            # Rimuove cartella fisica
-            if os.path.exists(dest_dir):
-                try:
-                    shutil.rmtree(dest_dir, ignore_errors=True)
-                    msg = f"Rimossa cartella temporanea {source_name}"
+                    # Rimuovi il marker
+                    marker_path = os.path.join(dest_dir, ".install_prompted")
+                    if os.path.exists(marker_path):
+                        try:
+                            os.remove(marker_path)
+                            log_info("Rimosso flag .install_prompted")
+                        except Exception as e:
+                            log_error(f"Errore rimozione flag .install_prompted: {e}")
+                    
+                    msg = f"Pulizia completata per {source_name}"
                     messages.append(msg)
                     log_info(msg)
                     cleaned_this = True
                 except Exception as e:
-                    error_msg = f"Errore rimozione cartella temporanea: {e}"
+                    error_msg = f"Errore pulizia cartella temporanea: {e}"
                     messages.append(error_msg)
                     log_error(error_msg)
-            else:
-                log_info(f"Cartella temporanea non trovata: {dest_dir}")
-        
-        # Se non è installato, pulisci comunque
-        elif not is_installed:
-            # Rimuove da sources.xml
-            fake_repo = {
-                "name": source_name,
-                "url": install['virtual_path']
-            }
-            
-            if sources_manager.remove_source_from_xml(fake_repo):
-                msg = f"Rimossa sorgente {source_name} da sources.xml"
-                messages.append(msg)
-                log_info(msg)
-                cleaned_this = True
-
-            # Rimuove cartella fisica
-            if os.path.exists(dest_dir):
-                try:
-                    shutil.rmtree(dest_dir, ignore_errors=True)
-                    msg = f"Rimossa cartella temporanea {source_name}"
-                    messages.append(msg)
-                    log_info(msg)
-                    cleaned_this = True
-                except Exception as e:
-                    error_msg = f"Errore rimozione cartella temporanea: {e}"
-                    messages.append(error_msg)
-                    log_error(error_msg)
-            else:
-                log_info(f"Cartella temporanea non trovata: {dest_dir}")
 
         if cleaned_this:
             cleaned_something = True
@@ -466,54 +457,64 @@ def cleanup_temp_install_folders():
             yeslabel="Riavvia ora",
             nolabel="Più tardi"
         ):
-            xbmc.executebuiltin("RestartApp")
-    else:
-        log_info("Nessuna operazione di pulizia/aggiornamento necessaria")
+            xbmc.executebuiltin('RestartApp')
 
-# --- Main Service Functions ---
-def check_self_update():
-    """Controlla e applica aggiornamenti dal repository"""
-    if not github_user or not github_repo:
-        log_error("Parametri GitHub mancanti nelle impostazioni")
-        return
+# --- Service Loop ---
+def main():
+    """Loop principale del service"""
+    monitor = xbmc.Monitor()
     
-    remote_sha = get_remote_commit()
-    if not remote_sha:
-        return
+    # Controlla aggiornamenti all'avvio
+    last_commit = read_last_commit()
+    remote_commit = get_remote_commit()
     
-    last_sha = read_last_commit()
-    if remote_sha == last_sha:
-        log_info("Nessun aggiornamento disponibile")
-        return
+    if remote_commit and remote_commit != last_commit:
+        log_info(f"Trovato nuovo commit: {remote_commit[:7]} (locale: {last_commit[:7]})")
+        
+        # Ottieni lista file remoti
+        remote_files = get_remote_file_list()
+        if remote_files:
+            sync_all(remote_files)
+            write_last_commit(remote_commit)
+            
+            # Notifica utente
+            xbmcgui.Dialog().notification(
+                ADDON_NAME,
+                f"Aggiornato al commit {remote_commit[:7]}",
+                ICON_PATH,
+                3000
+            )
     
-    log_info(f"Trovato nuovo commit: {remote_sha}")
-    remote_paths = get_remote_file_list()
-    
-    if not remote_paths:
-        log_error("Nessun file trovato nel repository remoto")
-        return
-    
-    try:
-        sync_all(remote_paths)
-        write_last_commit(remote_sha)
-        xbmcgui.Dialog().notification(
-            ADDON_NAME,
-            f"Addon aggiornato ({remote_sha[:7]})",
-            ICON_PATH,
-            5000
-        )
-        log_info("Aggiornamento completato con successo")
-    except Exception as e:
-        log_error(f"Errore durante la sincronizzazione: {e}")
-        xbmcgui.Dialog().notification(
-            ADDON_NAME,
-            "Errore durante l'aggiornamento!",
-            xbmcgui.NOTIFICATION_ERROR,
-            5000
-        )
-
-if __name__ == '__main__':
-    log_info("Servizio avviato")
-    check_self_update()
+    # Esegue pulizia all'avvio
     cleanup_temp_install_folders()
-    log_info("Servizio terminato")
+    
+    # Loop ogni 6 ore (21600 secondi)
+    while not monitor.abortRequested():
+        if monitor.waitForAbort(21600):
+            break
+        
+        last_commit = read_last_commit()
+        remote_commit = get_remote_commit()
+        
+        if remote_commit and remote_commit != last_commit:
+            log_info(f"Trovato nuovo commit: {remote_commit[:7]} (locale: {last_commit[:7]})")
+            
+            # Ottieni lista file remoti
+            remote_files = get_remote_file_list()
+            if remote_files:
+                sync_all(remote_files)
+                write_last_commit(remote_commit)
+                
+                # Notifica utente
+                xbmcgui.Dialog().notification(
+                    ADDON_NAME,
+                    f"Aggiornato al commit {remote_commit[:7]}",
+                    ICON_PATH,
+                    3000
+                )
+        
+        # Esegue pulizia regolarmente
+        cleanup_temp_install_folders()
+
+if __name__ == "__main__":
+    main()
