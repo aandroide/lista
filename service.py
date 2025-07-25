@@ -104,6 +104,13 @@ def parse_addon_xml_version(addon_xml_path):
         log_error(f"Errore parsing addon.xml: {e}")
     return '0.0.0'
 
+def get_installed_addon_version(addon_id):
+    """Ottiene la versione installata di un addon"""
+    try:
+        return xbmcaddon.Addon(addon_id).getAddonInfo('version')
+    except:
+        return '0.0.0'
+
 def is_version_greater(v1, v2):
     """Confronta due versioni nel formato semantico (major.minor.patch)"""
     def parse_version(v):
@@ -282,29 +289,23 @@ def cleanup_temp_install_folders():
         # Se l'addon è installato procedi con i controlli
         if is_installed:
             # Ottieni versione installata
-            try:
-                installed_version = xbmcaddon.Addon(addon_id).getAddonInfo('version')
-            except:
-                installed_version = '0.0.0'
-                log_error(f"Impossibile ottenere versione per {addon_id}")
+            installed_version = get_installed_addon_version(addon_id)
+            log_info(f"Versione installata di {addon_id}: {installed_version}")
             
             # Ottieni versione nella cartella temporanea
             temp_version = '0.0.0'
             if temp_version_available:
                 temp_version = parse_addon_xml_version(addon_xml_path)
-                log_info(f"Versione temporanea {addon_id}: {temp_version}")
+                log_info(f"Versione temporanea di {addon_id}: {temp_version}")
             
             # Controlla se è disponibile una versione più nuova
-            update_available = (
-                temp_version_available and 
-                is_version_greater(temp_version, installed_version)
-            )
+            update_available = temp_version_available and is_version_greater(temp_version, installed_version)
             
             # Controlla se le versioni sono identiche
-            versions_equal = (
-                temp_version_available and 
-                are_versions_equal(temp_version, installed_version)
-            )
+            versions_equal = temp_version_available and are_versions_equal(temp_version, installed_version)
+            
+            # Controlla se la versione installata è maggiore di quella temporanea
+            installed_is_newer = temp_version_available and is_version_greater(installed_version, temp_version)
             
             # Gestione aggiornamento
             if update_available:
@@ -346,8 +347,8 @@ def cleanup_temp_install_folders():
                         messages.append(error_msg)
                         log_error(error_msg)
             
-            # Gestione pulizia SOLO quando le versioni sono identiche
-            elif versions_equal:
+            # Pulizia quando le versioni sono identiche o quella installata è più nuova
+            elif temp_version_available and (versions_equal or installed_is_newer):
                 # Rimuove da sources.xml
                 fake_repo = {
                     "name": source_name,
