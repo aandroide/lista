@@ -10,7 +10,7 @@ Repo_Addon_installer-Service per Kodi addon: sincronizza i file remoti
 
 import xbmc, xbmcaddon, xbmcvfs, xbmcgui
 import urllib.request, urllib.error
-import json, os, shutil
+import json, os, shutil, re
 from resources.lib import sources_manager
 
 # --- Configurazione Addon ---
@@ -104,47 +104,34 @@ def parse_addon_xml_version(addon_xml_path):
         log_error(f"Errore parsing addon.xml: {e}")
     return '0.0.0'
 
-def get_installed_addon_version(addon_id):
-    """Ottiene la versione installata di un addon"""
-    try:
-        return xbmcaddon.Addon(addon_id).getAddonInfo('version')
-    except:
-        return '0.0.0'
+def normalize_version(version_str):
+    """Normalizza la stringa di versione per il confronto"""
+    # Rimuove spazi e caratteri speciali, converte in minuscolo
+    return re.sub(r'[^a-z0-9\.]', '', version_str.lower())
 
 def is_version_greater(v1, v2):
-    """Confronta due versioni nel formato semantico (major.minor.patch)"""
-    def parse_version(v):
-        parts = []
-        for part in v.split('.'):
-            try:
-                parts.append(int(part))
-            except ValueError:
-                # Gestione componenti non numeriche
-                parts.append(0)
-        # Completa con zeri se mancanti
-        while len(parts) < 3:
-            parts.append(0)
-        return parts
-    
-    v1_parts = parse_version(v1)
-    v2_parts = parse_version(v2)
-    
-    return v1_parts > v2_parts
+    """Confronta versioni con suffissi alfanumerici usando LooseVersion"""
+    try:
+        from distutils.version import LooseVersion
+        v1_norm = normalize_version(v1)
+        v2_norm = normalize_version(v2)
+        return LooseVersion(v1_norm) > LooseVersion(v2_norm)
+    except Exception as e:
+        log_error(f"Errore confronto versioni {v1} vs {v2}: {e}")
+        # Fallback a confronto semplice
+        return v1 > v2
 
 def are_versions_equal(v1, v2):
     """Controlla se due versioni sono identiche"""
-    def parse_version(v):
-        parts = []
-        for part in v.split('.'):
-            try:
-                parts.append(int(part))
-            except ValueError:
-                parts.append(0)
-        while len(parts) < 3:
-            parts.append(0)
-        return parts
-    
-    return parse_version(v1) == parse_version(v2)
+    try:
+        from distutils.version import LooseVersion
+        v1_norm = normalize_version(v1)
+        v2_norm = normalize_version(v2)
+        return LooseVersion(v1_norm) == LooseVersion(v2_norm)
+    except Exception as e:
+        log_error(f"Errore confronto uguaglianza versioni {v1} vs {v2}: {e}")
+        # Fallback a confronto semplice
+        return v1 == v2
 
 # --- Gestione Commit ---
 def read_last_commit():
@@ -297,14 +284,20 @@ def cleanup_temp_install_folders():
                 temp_version = parse_addon_xml_version(addon_xml_path)
                 log_info(f"Versione temporanea di {addon_id}: {temp_version}")
             
-            # Controlla se è disponibile una versione più nuova
+            # DEBUG: Log dettagliato del confronto
+            log_info(f"[DEBUG] Confronto versioni per {addon_id}:")
+            log_info(f"  Installata: {installed_version}")
+            log_info(f"  Temporanea: {temp_version}")
+            
+            # Calcola i risultati del confronto
             update_available = temp_version_available and is_version_greater(temp_version, installed_version)
-            
-            # Controlla se le versioni sono identiche
             versions_equal = temp_version_available and are_versions_equal(temp_version, installed_version)
-            
-            # Controlla se la versione installata è maggiore di quella temporanea
             installed_is_newer = temp_version_available and is_version_greater(installed_version, temp_version)
+            
+            # DEBUG: Log dei risultati
+            log_info(f"  Update disponibile? {update_available}")
+            log_info(f"  Versioni uguali? {versions_equal}")
+            log_info(f"  Installata più recente? {installed_is_newer}")
             
             # Gestione aggiornamento
             if update_available:
