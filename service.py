@@ -115,7 +115,9 @@ def is_version_greater(v1, v2):
         from distutils.version import LooseVersion
         v1_norm = normalize_version(v1)
         v2_norm = normalize_version(v2)
-        return LooseVersion(v1_norm) > LooseVersion(v2_norm)
+        result = LooseVersion(v1_norm) > LooseVersion(v2_norm)
+        log_info(f"is_version_greater({v1}, {v2}): {v1_norm} > {v2_norm} = {result}")
+        return result
     except Exception as e:
         log_error(f"Errore confronto versioni {v1} vs {v2}: {e}")
         # Fallback a confronto semplice
@@ -127,7 +129,9 @@ def are_versions_equal(v1, v2):
         from distutils.version import LooseVersion
         v1_norm = normalize_version(v1)
         v2_norm = normalize_version(v2)
-        return LooseVersion(v1_norm) == LooseVersion(v2_norm)
+        result = LooseVersion(v1_norm) == LooseVersion(v2_norm)
+        log_info(f"are_versions_equal({v1}, {v2}): {v1_norm} == {v2_norm} = {result}")
+        return result
     except Exception as e:
         log_error(f"Errore confronto uguaglianza versioni {v1} vs {v2}: {e}")
         # Fallback a confronto semplice
@@ -267,6 +271,13 @@ def cleanup_temp_install_folders():
         temp_folder_exists = os.path.exists(dest_dir)
         temp_version_available = temp_folder_exists and os.path.exists(addon_xml_path)
 
+        # DEBUG: Verifica percorsi e contenuti
+        log_info(f"[DEBUG] Verifica installazione per: {addon_id}")
+        log_info(f"  Cartella temporanea: {dest_dir} → Esiste: {temp_folder_exists}")
+        log_info(f"  Cartella installata: {installed_dir} → Esiste: {os.path.exists(installed_dir)}")
+        log_info(f"  addon.xml temporaneo: {addon_xml_path} → Esiste: {os.path.exists(addon_xml_path)}")
+        log_info(f"  addon.xml installato: {installed_xml} → Esiste: {os.path.exists(installed_xml)}")
+
         # Se esiste temp ma non esiste addon.xml installato, è una prima installazione
         if temp_folder_exists and not os.path.exists(installed_xml):
             log_info(f"{addon_id} non installato ma trovato in temp → pronto per installazione")
@@ -284,10 +295,21 @@ def cleanup_temp_install_folders():
                 temp_version = parse_addon_xml_version(addon_xml_path)
                 log_info(f"Versione temporanea di {addon_id}: {temp_version}")
             
-            # DEBUG: Log dettagliato del confronto
-            log_info(f"[DEBUG] Confronto versioni per {addon_id}:")
-            log_info(f"  Installata: {installed_version}")
-            log_info(f"  Temporanea: {temp_version}")
+            # DEBUG: Leggi e mostra il contenuto degli addon.xml
+            try:
+                with open(installed_xml, 'r', encoding='utf-8') as f:
+                    installed_content = f.read(200)  # Leggi primi 200 caratteri
+                    log_info(f"[DEBUG] Contenuto addon.xml installato:\n{installed_content}")
+            except Exception as e:
+                log_error(f"Errore lettura addon.xml installato: {e}")
+            
+            try:
+                if temp_version_available:
+                    with open(addon_xml_path, 'r', encoding='utf-8') as f:
+                        temp_content = f.read(200)  # Leggi primi 200 caratteri
+                        log_info(f"[DEBUG] Contenuto addon.xml temporaneo:\n{temp_content}")
+            except Exception as e:
+                log_error(f"Errore lettura addon.xml temporaneo: {e}")
             
             # Calcola i risultati del confronto
             update_available = temp_version_available and is_version_greater(temp_version, installed_version)
@@ -317,10 +339,20 @@ def cleanup_temp_install_folders():
                 ):
                     # Copia i file dalla cartella temporanea all'addon
                     try:
+                        # DEBUG: Verifica permessi e spazio
+                        log_info(f"Preparazione aggiornamento: {addon_id}")
+                        log_info(f"  Dimensione cartella temporanea: {get_folder_size(dest_dir)}")
+                        log_info(f"  Spazio disponibile: {shutil.disk_usage(installed_dir).free} bytes")
+                        
                         # Copia ricorsiva sovrascrivendo i file
                         if os.path.exists(installed_dir):
+                            log_info("Rimozione vecchia installazione...")
                             shutil.rmtree(installed_dir)
+                            log_info("Vecchia installazione rimossa")
+                        
+                        log_info("Copia nuova versione...")
                         shutil.copytree(dest_dir, installed_dir)
+                        log_info("Copia completata")
                         
                         msg = f"Aggiornato {addon_id} alla versione {temp_version}"
                         messages.append(msg)
@@ -329,10 +361,22 @@ def cleanup_temp_install_folders():
                         
                         # Dopo l'aggiornamento, rimuovi la cartella temporanea
                         try:
+                            log_info("Pulizia cartella temporanea...")
                             shutil.rmtree(dest_dir, ignore_errors=True)
-                            messages.append(f"Rimossa cartella temporanea {source_name}")
+                            msg = f"Rimossa cartella temporanea {source_name}"
+                            messages.append(msg)
+                            log_info(msg)
                         except Exception as e:
                             log_error(f"Errore rimozione cartella temporanea: {e}")
+                    except PermissionError as pe:
+                        error_msg = f"Errore permessi durante aggiornamento: {pe}"
+                        log_error(error_msg)
+                        xbmcgui.Dialog().notification(
+                            ADDON_NAME,
+                            "Errore permessi durante aggiornamento!",
+                            xbmcgui.NOTIFICATION_ERROR,
+                            5000
+                        )
                     except Exception as e:
                         error_msg = f"Errore aggiornamento {addon_id}: {e}"
                         messages.append(error_msg)
@@ -392,6 +436,17 @@ def cleanup_temp_install_folders():
     else:
         log_info("Nessuna operazione di pulizia/aggiornamento necessaria")
 
+# --- Helper per dimensione cartella ---
+def get_folder_size(path):
+    """Calcola la dimensione di una cartella in bytes"""
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(path):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            if not os.path.islink(fp):
+                total_size += os.path.getsize(fp)
+    return total_size
+
 # --- Main Service Functions ---
 def check_self_update():
     """Controlla e applica aggiornamenti dal repository"""
@@ -435,7 +490,21 @@ def check_self_update():
         )
 
 if __name__ == '__main__':
+    # Notifica di avvio servizio
+    xbmcgui.Dialog().notification(
+        ADDON_NAME,
+        "Servizio avviato",
+        ICON_PATH,
+        3000
+    )
+    
+    log_info("="*50)
     log_info("Servizio avviato")
+    log_info("="*50)
+    
     check_self_update()
     cleanup_temp_install_folders()
+    
+    log_info("="*50)
     log_info("Servizio terminato")
+    log_info("="*50)
