@@ -32,8 +32,8 @@ ADDON_PATH = xbmcvfs.translatePath(os.path.join('special://home/addons', ADDON_I
 IGNORE_FILES = {'.firstrun'}
 
 # Impostazioni GitHub
-github_user = ADDON.getSetting('github_user')
-github_repo = ADDON.getSetting('github_repo')
+github_user = ADDON.getSetting('github_user'))
+github_repo = ADDON.getSetting('github_repo'))
 github_branch = ADDON.getSetting('github_branch') or 'main'
 
 # --- Helper Generici ---
@@ -253,9 +253,22 @@ def sync_all(remote_paths):
     # Rimuove i file orfani
     sync_orphan_files(remote_paths)
 
-# --- Pulizia Origini Temporanee con verifica versione ---
+# --- Analizzatore di canali di sviluppo ---
+def get_release_channel(version_str):
+    """Identifica il canale di sviluppo (alpha, beta, stable)"""
+    if not version_str:
+        return "unknown"
+    
+    version_lower = version_str.lower()
+    if "alpha" in version_lower:
+        return "alpha"
+    elif "beta" in version_lower:
+        return "beta"
+    return "stable"
+
+# --- Pulizia Origini Temporanee con verifica versione e canale ---
 def cleanup_temp_install_folders():
-    """Pulizia avanzata con controllo versione e aggiornamento"""
+    """Pulizia avanzata con controllo versione e canale di sviluppo"""
     cleaned_something = False
     messages = []
     
@@ -305,7 +318,8 @@ def cleanup_temp_install_folders():
 
         # Ottieni versione installata leggendo addon.xml
         installed_version = parse_addon_xml_version(installed_xml)
-        log_info(f"Versione installata di {addon_id}: {installed_version}")
+        installed_channel = get_release_channel(installed_version)
+        log_info(f"Versione installata di {addon_id}: {installed_version} ({installed_channel})")
         
         # Se ci sono ZIP, cerca la versione
         temp_version = None
@@ -325,19 +339,30 @@ def cleanup_temp_install_folders():
             log_info(f"Nessuna versione valida trovata negli ZIP per {addon_id}")
             continue
         
+        # Ottieni canale della versione nel file ZIP
+        temp_channel = get_release_channel(temp_version)
+        log_info(f"Canale ZIP per {addon_id}: {temp_channel}")
+        
         # Calcola i risultati del confronto
-        update_available = is_version_greater(temp_version, installed_version)
+        version_greater = is_version_greater(temp_version, installed_version)
         versions_equal = are_versions_equal(temp_version, installed_version)
         installed_is_newer = is_version_greater(installed_version, temp_version)
+        channel_changed = (temp_channel != installed_channel)
         
         # DEBUG: Log dei risultati
-        log_info(f"  Update disponibile? {update_available}")
+        log_info(f"  Update disponibile? {version_greater}")
         log_info(f"  Versioni uguali? {versions_equal}")
         log_info(f"  Installata più recente? {installed_is_newer}")
+        log_info(f"  Canale cambiato? {channel_changed}")
         
         # Gestione aggiornamento (METODO SICURO)
+        # Considera aggiornamento se: 
+        # 1. Versione maggiore, OPPURE
+        # 2. Canale diverso (anche se versione minore)
+        update_available = version_greater or channel_changed
+        
         if update_available:
-            msg = f"Disponibile aggiornamento {addon_id}: {installed_version} → {temp_version}"
+            msg = f"Disponibile aggiornamento {addon_id}: {installed_version} ({installed_channel}) → {temp_version} ({temp_channel})"
             messages.append(msg)
             log_info(msg)
             
@@ -345,8 +370,8 @@ def cleanup_temp_install_folders():
             if xbmcgui.Dialog().yesno(
                 ADDON_NAME,
                 f"Nuova versione disponibile per {addon_id}!\n\n"
-                f"Versione attuale: {installed_version}\n"
-                f"Nuova versione: {temp_version}\n\n"
+                f"Versione attuale: {installed_version} ({installed_channel})\n"
+                f"Nuova versione: {temp_version} ({temp_channel})\n\n"
                 "Vuoi installare manualmente ora?",
                 yeslabel="Apri installazione",
                 nolabel="Annulla"
@@ -368,8 +393,8 @@ def cleanup_temp_install_folders():
                 marker_path = os.path.join(dest_dir, ".install_prompted")
                 try:
                     with open(marker_path, 'w') as marker:
-                        marker.write(temp_version)
-                    log_info("Flag .install_prompted scritto con versione ZIP")
+                        marker.write(f"{temp_version}|{temp_channel}")
+                    log_info("Flag .install_prompted scritto con versione e canale ZIP")
                 except Exception as e:
                     log_error(f"Errore scrittura .install_prompted: {e}")
                 
@@ -393,48 +418,59 @@ def cleanup_temp_install_folders():
                 )
 
         # Pulizia quando le versioni sono identiche E è stato fatto il prompt
-        elif versions_equal and os.path.exists(os.path.join(dest_dir, ".install_prompted")):
-            # Rimuove da sources.xml
-            fake_repo = {
-                "name": source_name,
-                "url": install['virtual_path']
-            }
-            
-            if sources_manager.remove_source_from_xml(fake_repo):
-                msg = f"Rimossa sorgente {source_name} da sources.xml"
-                messages.append(msg)
-                log_info(msg)
-                cleaned_this = True
+        elif os.path.exists(os.path.join(dest_dir, ".install_prompted")):
+            # Legge il marker per verificare se è stata installata questa versione
+            try:
+                with open(os.path.join(dest_dir, ".install_prompted"), 'r') as f:
+                    marker_data = f.read().split('|')
+                    marker_version = marker_data[0]
+                    marker_channel = marker_data[1] if len(marker_data) > 1 else "unknown"
+                
+                # Verifica se la versione installata corrisponde a quella nel marker
+                if are_versions_equal(installed_version, marker_version):
+                    # Rimuove da sources.xml
+                    fake_repo = {
+                        "name": source_name,
+                        "url": install['virtual_path']
+                    }
+                    
+                    if sources_manager.remove_source_from_xml(fake_repo):
+                        msg = f"Rimossa sorgente {source_name} da sources.xml"
+                        messages.append(msg)
+                        log_info(msg)
+                        cleaned_this = True
 
-            # Rimuove cartella fisica
-            if os.path.exists(dest_dir):
-                try:
-                    # Rimuovi tutti gli ZIP
-                    for zip_file in zip_files:
-                        zip_path = os.path.join(dest_dir, zip_file)
+                    # Rimuove cartella fisica
+                    if os.path.exists(dest_dir):
                         try:
-                            os.remove(zip_path)
-                            log_info(f"Rimosso file ZIP: {zip_file}")
+                            # Rimuovi tutti gli ZIP
+                            for zip_file in zip_files:
+                                zip_path = os.path.join(dest_dir, zip_file)
+                                try:
+                                    os.remove(zip_path)
+                                    log_info(f"Rimosso file ZIP: {zip_file}")
+                                except Exception as e:
+                                    log_error(f"Errore rimozione ZIP: {e}")
+                            
+                            # Rimuovi il marker
+                            marker_path = os.path.join(dest_dir, ".install_prompted")
+                            if os.path.exists(marker_path):
+                                try:
+                                    os.remove(marker_path)
+                                    log_info("Rimosso flag .install_prompted")
+                                except Exception as e:
+                                    log_error(f"Errore rimozione flag .install_prompted: {e}")
+                            
+                            msg = f"Pulizia completata per {source_name}"
+                            messages.append(msg)
+                            log_info(msg)
+                            cleaned_this = True
                         except Exception as e:
-                            log_error(f"Errore rimozione ZIP: {e}")
-                    
-                    # Rimuovi il marker
-                    marker_path = os.path.join(dest_dir, ".install_prompted")
-                    if os.path.exists(marker_path):
-                        try:
-                            os.remove(marker_path)
-                            log_info("Rimosso flag .install_prompted")
-                        except Exception as e:
-                            log_error(f"Errore rimozione flag .install_prompted: {e}")
-                    
-                    msg = f"Pulizia completata per {source_name}"
-                    messages.append(msg)
-                    log_info(msg)
-                    cleaned_this = True
-                except Exception as e:
-                    error_msg = f"Errore pulizia cartella temporanea: {e}"
-                    messages.append(error_msg)
-                    log_error(error_msg)
+                            error_msg = f"Errore pulizia cartella temporanea: {e}"
+                            messages.append(error_msg)
+                            log_error(error_msg)
+            except Exception as e:
+                log_error(f"Errore lettura marker: {e}")
 
         if cleaned_this:
             cleaned_something = True
