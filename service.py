@@ -92,7 +92,7 @@ def github_api_request(path, timeout=10):
         log_error(f"richiesta API fallita {url}: {e}")
     return None
 
-# --- Nuove funzioni helper per gestione versioni ---
+# --- Funzioni helper per gestione versioni ---
 def parse_addon_xml_version(addon_xml_path):
     """Parsa addon.xml per estrarre la versione"""
     try:
@@ -123,6 +123,21 @@ def is_version_greater(v1, v2):
     v2_parts = parse_version(v2)
     
     return v1_parts > v2_parts
+
+def are_versions_equal(v1, v2):
+    """Controlla se due versioni sono identiche"""
+    def parse_version(v):
+        parts = []
+        for part in v.split('.'):
+            try:
+                parts.append(int(part))
+            except ValueError:
+                parts.append(0)
+        while len(parts) < 3:
+            parts.append(0)
+        return parts
+    
+    return parse_version(v1) == parse_version(v2)
 
 # --- Gestione Commit ---
 def read_last_commit():
@@ -259,89 +274,106 @@ def cleanup_temp_install_folders():
         temp_folder_exists = os.path.exists(dest_dir)
         temp_version_available = temp_folder_exists and os.path.exists(addon_xml_path)
         
-        # Ottieni versione installata
-        installed_version = '0.0.0'
+        # Se la cartella temporanea esiste ma l'addon non è installato
+        if temp_folder_exists and not is_installed:
+            log_info(f"Cartella temporanea presente per {addon_id} ma addon non installato - Mantenuta per installazione futura")
+            continue  # Salta alla prossima iterazione senza pulire
+            
+        # Se l'addon è installato procedi con i controlli
         if is_installed:
+            # Ottieni versione installata
             try:
                 installed_version = xbmcaddon.Addon(addon_id).getAddonInfo('version')
             except:
                 installed_version = '0.0.0'
                 log_error(f"Impossibile ottenere versione per {addon_id}")
-        
-        # Ottieni versione nella cartella temporanea
-        temp_version = '0.0.0'
-        if temp_version_available:
-            temp_version = parse_addon_xml_version(addon_xml_path)
-            log_info(f"Versione temporanea {addon_id}: {temp_version}")
-        
-        # Controlla se è disponibile una versione più nuova
-        update_available = (
-            temp_version_available and 
-            is_installed and 
-            is_version_greater(temp_version, installed_version)
-        )
-        
-        # Gestione aggiornamento
-        if update_available:
-            msg = f"Disponibile aggiornamento {addon_id}: {installed_version} → {temp_version}"
-            messages.append(msg)
-            log_info(msg)
             
-            # Prompt per aggiornamento
-            if xbmcgui.Dialog().yesno(
-                ADDON_NAME,
-                f"Nuova versione disponibile per {addon_id}!\n\n"
-                f"Versione attuale: {installed_version}\n"
-                f"Nuova versione: {temp_version}\n\n"
-                "Vuoi aggiornare ora?",
-                yeslabel="Aggiorna",
-                nolabel="Ignora"
-            ):
-                # Copia i file dalla cartella temporanea all'addon
-                addon_path = xbmcvfs.translatePath(f"special://home/addons/{addon_id}")
-                try:
-                    # Copia ricorsiva sovrascrivendo i file
-                    if os.path.exists(addon_path):
-                        shutil.rmtree(addon_path)
-                    shutil.copytree(dest_dir, addon_path)
-                    
-                    msg = f"Aggiornato {addon_id} alla versione {temp_version}"
-                    messages.append(msg)
-                    log_info(msg)
-                    cleaned_this = True
-                except Exception as e:
-                    error_msg = f"Errore aggiornamento {addon_id}: {e}"
-                    messages.append(error_msg)
-                    log_error(error_msg)
-        
-        # Pulizia standard (solo se non abbiamo appena aggiornato o se non installato)
-        if not cleaned_this:
-            # Rimuove da sources.xml
-            fake_repo = {
-                "name": source_name,
-                "url": install['virtual_path']
-            }
+            # Ottieni versione nella cartella temporanea
+            temp_version = '0.0.0'
+            if temp_version_available:
+                temp_version = parse_addon_xml_version(addon_xml_path)
+                log_info(f"Versione temporanea {addon_id}: {temp_version}")
             
-            if sources_manager.remove_source_from_xml(fake_repo):
-                msg = f"Rimossa sorgente {source_name} da sources.xml"
+            # Controlla se è disponibile una versione più nuova
+            update_available = (
+                temp_version_available and 
+                is_version_greater(temp_version, installed_version)
+            )
+            
+            # Controlla se le versioni sono identiche
+            versions_equal = (
+                temp_version_available and 
+                are_versions_equal(temp_version, installed_version)
+            )
+            
+            # Gestione aggiornamento
+            if update_available:
+                msg = f"Disponibile aggiornamento {addon_id}: {installed_version} → {temp_version}"
                 messages.append(msg)
                 log_info(msg)
-                cleaned_this = True
-
-            # Rimuove cartella fisica
-            if os.path.exists(dest_dir):
-                try:
-                    shutil.rmtree(dest_dir, ignore_errors=True)
-                    msg = f"Rimossa cartella {source_name}: {dest_dir}"
+                
+                # Prompt per aggiornamento
+                if xbmcgui.Dialog().yesno(
+                    ADDON_NAME,
+                    f"Nuova versione disponibile per {addon_id}!\n\n"
+                    f"Versione attuale: {installed_version}\n"
+                    f"Nuova versione: {temp_version}\n\n"
+                    "Vuoi aggiornare ora?",
+                    yeslabel="Aggiorna",
+                    nolabel="Ignora"
+                ):
+                    # Copia i file dalla cartella temporanea all'addon
+                    addon_path = xbmcvfs.translatePath(f"special://home/addons/{addon_id}")
+                    try:
+                        # Copia ricorsiva sovrascrivendo i file
+                        if os.path.exists(addon_path):
+                            shutil.rmtree(addon_path)
+                        shutil.copytree(dest_dir, addon_path)
+                        
+                        msg = f"Aggiornato {addon_id} alla versione {temp_version}"
+                        messages.append(msg)
+                        log_info(msg)
+                        cleaned_this = True
+                        
+                        # Dopo l'aggiornamento, rimuovi la cartella temporanea
+                        try:
+                            shutil.rmtree(dest_dir, ignore_errors=True)
+                            messages.append(f"Rimossa cartella temporanea {source_name}")
+                        except Exception as e:
+                            log_error(f"Errore rimozione cartella temporanea: {e}")
+                    except Exception as e:
+                        error_msg = f"Errore aggiornamento {addon_id}: {e}"
+                        messages.append(error_msg)
+                        log_error(error_msg)
+            
+            # Gestione pulizia SOLO quando le versioni sono identiche
+            elif versions_equal:
+                # Rimuove da sources.xml
+                fake_repo = {
+                    "name": source_name,
+                    "url": install['virtual_path']
+                }
+                
+                if sources_manager.remove_source_from_xml(fake_repo):
+                    msg = f"Rimossa sorgente {source_name} da sources.xml"
                     messages.append(msg)
                     log_info(msg)
                     cleaned_this = True
-                except Exception as e:
-                    error_msg = f"Errore rimozione cartella {source_name}: {e}"
-                    messages.append(error_msg)
-                    log_error(error_msg)
-            else:
-                log_info(f"Cartella non trovata: {dest_dir}")
+
+                # Rimuove cartella fisica
+                if os.path.exists(dest_dir):
+                    try:
+                        shutil.rmtree(dest_dir, ignore_errors=True)
+                        msg = f"Rimossa cartella temporanea {source_name}"
+                        messages.append(msg)
+                        log_info(msg)
+                        cleaned_this = True
+                    except Exception as e:
+                        error_msg = f"Errore rimozione cartella temporanea: {e}"
+                        messages.append(error_msg)
+                        log_error(error_msg)
+                else:
+                    log_info(f"Cartella temporanea non trovata: {dest_dir}")
 
         if cleaned_this:
             cleaned_something = True
