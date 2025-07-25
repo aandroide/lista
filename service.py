@@ -10,7 +10,7 @@ Repo_Addon_installer-Service per Kodi addon: sincronizza i file remoti
 
 import xbmc, xbmcaddon, xbmcvfs, xbmcgui
 import urllib.request, urllib.error
-import json, os, shutil, re
+import json, os, shutil, re, zipfile
 from resources.lib import sources_manager
 
 # --- Configurazione Addon ---
@@ -102,6 +102,30 @@ def parse_addon_xml_version(addon_xml_path):
         return root.get('version', '0.0.0')
     except Exception as e:
         log_error(f"Errore parsing addon.xml: {e}")
+    return '0.0.0'
+
+def parse_addon_xml_from_zip(zip_path):
+    """Legge la versione da un file ZIP dell'addon"""
+    try:
+        with zipfile.ZipFile(zip_path, 'r') as z:
+            # Trova il percorso corretto di addon.xml nello ZIP
+            addon_xml_path = None
+            for name in z.namelist():
+                if name.endswith('addon.xml') or name == 'addon.xml':
+                    addon_xml_path = name
+                    break
+            
+            if not addon_xml_path:
+                log_error(f"addon.xml non trovato in {zip_path}")
+                return '0.0.0'
+            
+            with z.open(addon_xml_path) as f:
+                import xml.etree.ElementTree as ET
+                content = f.read().decode('utf-8')
+                root = ET.fromstring(content)
+                return root.get('version', '0.0.0')
+    except Exception as e:
+        log_error(f"Errore lettura ZIP {zip_path}: {e}")
     return '0.0.0'
 
 def normalize_version(version_str):
@@ -262,21 +286,26 @@ def cleanup_temp_install_folders():
         addon_id = install["addon_id"]
         source_name = install["source_name"]
         dest_dir = xbmcvfs.translatePath(install['virtual_path'])
-        addon_xml_path = os.path.join(dest_dir, 'addon.xml')
         cleaned_this = False
         
         # Percorsi installazione reale
         installed_dir = xbmcvfs.translatePath(f"special://home/addons/{addon_id}")
         installed_xml = os.path.join(installed_dir, 'addon.xml')
         temp_folder_exists = os.path.exists(dest_dir)
-        temp_version_available = temp_folder_exists and os.path.exists(addon_xml_path)
 
-        # DEBUG: Verifica percorsi e contenuti
-        log_info(f"[DEBUG] Verifica installazione per: {addon_id}")
-        log_info(f"  Cartella temporanea: {dest_dir} → Esiste: {temp_folder_exists}")
-        log_info(f"  Cartella installata: {installed_dir} → Esiste: {os.path.exists(installed_dir)}")
-        log_info(f"  addon.xml temporaneo: {addon_xml_path} → Esiste: {os.path.exists(addon_xml_path)}")
-        log_info(f"  addon.xml installato: {installed_xml} → Esiste: {os.path.exists(installed_xml)}")
+        # 1. CERCA FILE ZIP NELLA CARTELLA TEMPORANEA
+        zip_files = []
+        if temp_folder_exists:
+            for file in os.listdir(dest_dir):
+                if file.lower().endswith('.zip') and addon_id.replace('.', '-') in file.lower():
+                    zip_files.append(os.path.join(dest_dir, file))
+        
+        temp_version_available = bool(zip_files)
+        
+        # DEBUG: Log dei file trovati
+        log_info(f"Trovati {len(zip_files)} file ZIP per {addon_id} in {dest_dir}")
+        for z in zip_files:
+            log_info(f"  - {os.path.basename(z)}")
 
         # Se esiste temp ma non esiste addon.xml installato, è una prima installazione
         if temp_folder_exists and not os.path.exists(installed_xml):
@@ -289,127 +318,106 @@ def cleanup_temp_install_folders():
             installed_version = parse_addon_xml_version(installed_xml)
             log_info(f"Versione installata di {addon_id}: {installed_version}")
             
-            # Ottieni versione nella cartella temporanea
-            temp_version = '0.0.0'
-            if temp_version_available:
-                temp_version = parse_addon_xml_version(addon_xml_path)
-                log_info(f"Versione temporanea di {addon_id}: {temp_version}")
+            # 2. PER OGNI ZIP, LEGGI LA VERSIONE
+            max_temp_version = '0.0.0'
+            latest_zip_path = None
             
-            # DEBUG: Leggi e mostra il contenuto degli addon.xml
-            try:
-                with open(installed_xml, 'r', encoding='utf-8') as f:
-                    installed_content = f.read(200)  # Leggi primi 200 caratteri
-                    log_info(f"[DEBUG] Contenuto addon.xml installato:\n{installed_content}")
-            except Exception as e:
-                log_error(f"Errore lettura addon.xml installato: {e}")
+            for zip_path in zip_files:
+                try:
+                    zip_version = parse_addon_xml_from_zip(zip_path)
+                    log_info(f"Versione trovata in {os.path.basename(zip_path)}: {zip_version}")
+                    
+                    # Trova la versione più recente tra gli ZIP
+                    if is_version_greater(zip_version, max_temp_version):
+                        max_temp_version = zip_version
+                        latest_zip_path = zip_path
+                except Exception as e:
+                    log_error(f"Errore analisi {zip_path}: {e}")
             
-            try:
-                if temp_version_available:
-                    with open(addon_xml_path, 'r', encoding='utf-8') as f:
-                        temp_content = f.read(200)  # Leggi primi 200 caratteri
-                        log_info(f"[DEBUG] Contenuto addon.xml temporaneo:\n{temp_content}")
-            except Exception as e:
-                log_error(f"Errore lettura addon.xml temporaneo: {e}")
-            
-            # Calcola i risultati del confronto
-            update_available = temp_version_available and is_version_greater(temp_version, installed_version)
-            versions_equal = temp_version_available and are_versions_equal(temp_version, installed_version)
-            installed_is_newer = temp_version_available and is_version_greater(installed_version, temp_version)
-            
-            # DEBUG: Log dei risultati
-            log_info(f"  Update disponibile? {update_available}")
-            log_info(f"  Versioni uguali? {versions_equal}")
-            log_info(f"  Installata più recente? {installed_is_newer}")
-            
-            # Gestione aggiornamento
-            if update_available:
-                msg = f"Disponibile aggiornamento {addon_id}: {installed_version} → {temp_version}"
-                messages.append(msg)
-                log_info(msg)
+            # 3. CONFRONTO VERSIONI
+            if max_temp_version != '0.0.0':
+                temp_version = max_temp_version
+                update_available = is_version_greater(temp_version, installed_version)
+                versions_equal = are_versions_equal(temp_version, installed_version)
+                installed_is_newer = is_version_greater(installed_version, temp_version)
                 
-                # Prompt per aggiornamento
-                if xbmcgui.Dialog().yesno(
-                    ADDON_NAME,
-                    f"Nuova versione disponibile per {addon_id}!\n\n"
-                    f"Versione attuale: {installed_version}\n"
-                    f"Nuova versione: {temp_version}\n\n"
-                    "Vuoi aggiornare ora?",
-                    yeslabel="Aggiorna",
-                    nolabel="Ignora"
-                ):
-                    # Copia i file dalla cartella temporanea all'addon
-                    try:
-                        # DEBUG: Verifica permessi e spazio
-                        log_info(f"Preparazione aggiornamento: {addon_id}")
-                        log_info(f"  Dimensione cartella temporanea: {get_folder_size(dest_dir)}")
-                        log_info(f"  Spazio disponibile: {shutil.disk_usage(installed_dir).free} bytes")
-                        
-                        # Copia ricorsiva sovrascrivendo i file
-                        if os.path.exists(installed_dir):
-                            log_info("Rimozione vecchia installazione...")
-                            shutil.rmtree(installed_dir)
-                            log_info("Vecchia installazione rimossa")
-                        
-                        log_info("Copia nuova versione...")
-                        shutil.copytree(dest_dir, installed_dir)
-                        log_info("Copia completata")
-                        
-                        msg = f"Aggiornato {addon_id} alla versione {temp_version}"
-                        messages.append(msg)
-                        log_info(msg)
-                        cleaned_this = True
-                        
-                        # Dopo l'aggiornamento, rimuovi la cartella temporanea
-                        try:
-                            log_info("Pulizia cartella temporanea...")
-                            shutil.rmtree(dest_dir, ignore_errors=True)
-                            msg = f"Rimossa cartella temporanea {source_name}"
-                            messages.append(msg)
-                            log_info(msg)
-                        except Exception as e:
-                            log_error(f"Errore rimozione cartella temporanea: {e}")
-                    except PermissionError as pe:
-                        error_msg = f"Errore permessi durante aggiornamento: {pe}"
-                        log_error(error_msg)
-                        xbmcgui.Dialog().notification(
-                            ADDON_NAME,
-                            "Errore permessi durante aggiornamento!",
-                            xbmcgui.NOTIFICATION_ERROR,
-                            5000
-                        )
-                    except Exception as e:
-                        error_msg = f"Errore aggiornamento {addon_id}: {e}"
-                        messages.append(error_msg)
-                        log_error(error_msg)
-            
-            # Pulizia quando le versioni sono identiche o quella installata è più nuova
-            elif temp_version_available and (versions_equal or installed_is_newer):
-                # Rimuove da sources.xml
-                fake_repo = {
-                    "name": source_name,
-                    "url": install['virtual_path']
-                }
+                # DEBUG: Log dei risultati
+                log_info(f"  Update disponibile? {update_available}")
+                log_info(f"  Versioni uguali? {versions_equal}")
+                log_info(f"  Installata più recente? {installed_is_newer}")
                 
-                if sources_manager.remove_source_from_xml(fake_repo):
-                    msg = f"Rimossa sorgente {source_name} da sources.xml"
+                # Gestione aggiornamento
+                if update_available:
+                    msg = f"Disponibile aggiornamento {addon_id}: {installed_version} → {temp_version}"
                     messages.append(msg)
                     log_info(msg)
-                    cleaned_this = True
-
-                # Rimuove cartella fisica
-                if os.path.exists(dest_dir):
-                    try:
-                        shutil.rmtree(dest_dir, ignore_errors=True)
-                        msg = f"Rimossa cartella temporanea {source_name}"
+                    
+                    # Prompt per aggiornamento
+                    if xbmcgui.Dialog().yesno(
+                        ADDON_NAME,
+                        f"Nuova versione disponibile per {addon_id}!\n\n"
+                        f"Versione attuale: {installed_version}\n"
+                        f"Nuova versione: {temp_version}\n\n"
+                        "Vuoi aggiornare ora?",
+                        yeslabel="Aggiorna",
+                        nolabel="Ignora"
+                    ):
+                        try:
+                            # Installa direttamente dallo ZIP
+                            log_info(f"Installazione da ZIP: {os.path.basename(latest_zip_path)}")
+                            xbmc.executebuiltin(f'InstallAddon({addon_id}, {latest_zip_path})')
+                            
+                            # Opzionale: rimuovi lo ZIP dopo l'installazione
+                            try:
+                                os.remove(latest_zip_path)
+                                log_info(f"Rimosso file ZIP: {os.path.basename(latest_zip_path)}")
+                            except Exception as e:
+                                log_error(f"Errore rimozione ZIP: {e}")
+                            
+                            msg = f"Aggiornato {addon_id} alla versione {temp_version}"
+                            messages.append(msg)
+                            log_info(msg)
+                            cleaned_this = True
+                        except Exception as e:
+                            error_msg = f"Errore aggiornamento {addon_id}: {e}"
+                            messages.append(error_msg)
+                            log_error(error_msg)
+                
+                # Pulizia quando le versioni sono identiche o quella installata è più nuova
+                elif versions_equal or installed_is_newer:
+                    # Rimuove da sources.xml
+                    fake_repo = {
+                        "name": source_name,
+                        "url": install['virtual_path']
+                    }
+                    
+                    if sources_manager.remove_source_from_xml(fake_repo):
+                        msg = f"Rimossa sorgente {source_name} da sources.xml"
                         messages.append(msg)
                         log_info(msg)
                         cleaned_this = True
-                    except Exception as e:
-                        error_msg = f"Errore rimozione cartella temporanea: {e}"
-                        messages.append(error_msg)
-                        log_error(error_msg)
-                else:
-                    log_info(f"Cartella temporanea non trovata: {dest_dir}")
+
+                    # Rimuove cartella fisica
+                    if os.path.exists(dest_dir):
+                        try:
+                            # Rimuovi tutti gli ZIP
+                            for zip_file in zip_files:
+                                try:
+                                    os.remove(zip_file)
+                                    log_info(f"Rimosso file ZIP: {os.path.basename(zip_file)}")
+                                except Exception as e:
+                                    log_error(f"Errore rimozione ZIP: {e}")
+                            
+                            msg = f"Pulizia completata per {source_name}"
+                            messages.append(msg)
+                            log_info(msg)
+                            cleaned_this = True
+                        except Exception as e:
+                            error_msg = f"Errore pulizia cartella temporanea: {e}"
+                            messages.append(error_msg)
+                            log_error(error_msg)
+            else:
+                log_info(f"Nessuna versione valida trovata negli ZIP per {addon_id}")
 
         if cleaned_this:
             cleaned_something = True
@@ -435,17 +443,6 @@ def cleanup_temp_install_folders():
             xbmc.executebuiltin("RestartApp")
     else:
         log_info("Nessuna operazione di pulizia/aggiornamento necessaria")
-
-# --- Helper per dimensione cartella ---
-def get_folder_size(path):
-    """Calcola la dimensione di una cartella in bytes"""
-    total_size = 0
-    for dirpath, dirnames, filenames in os.walk(path):
-        for f in filenames:
-            fp = os.path.join(dirpath, f)
-            if not os.path.islink(fp):
-                total_size += os.path.getsize(fp)
-    return total_size
 
 # --- Main Service Functions ---
 def check_self_update():
