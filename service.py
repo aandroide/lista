@@ -11,6 +11,7 @@ Repo_Addon_installer-Service per Kodi addon: sincronizza i file remoti
 import xbmc, xbmcaddon, xbmcvfs, xbmcgui
 import urllib.request, urllib.error
 import json, os, shutil, re, zipfile
+import xml.etree.ElementTree as ET
 from resources.lib import sources_manager
 
 # --- Configurazione Addon ---
@@ -96,7 +97,6 @@ def github_api_request(path, timeout=10):
 def parse_addon_xml_version(addon_xml_path):
     """Parsa addon.xml per estrarre la versione"""
     try:
-        import xml.etree.ElementTree as ET
         tree = ET.parse(addon_xml_path)
         root = tree.getroot()
         return root.get('version', '0.0.0')
@@ -104,29 +104,20 @@ def parse_addon_xml_version(addon_xml_path):
         log_error(f"Errore parsing addon.xml: {e}")
     return '0.0.0'
 
-def parse_addon_xml_from_zip(zip_path):
-    """Legge la versione da un file ZIP dell'addon"""
+def get_version_from_zip(zip_path):
+    """Estrae la versione da addon.xml dentro uno ZIP"""
     try:
         with zipfile.ZipFile(zip_path, 'r') as z:
-            # Trova il percorso corretto di addon.xml nello ZIP
-            addon_xml_path = None
             for name in z.namelist():
                 if name.endswith('addon.xml') or name == 'addon.xml':
-                    addon_xml_path = name
-                    break
-            
-            if not addon_xml_path:
-                log_error(f"addon.xml non trovato in {zip_path}")
-                return '0.0.0'
-            
-            with z.open(addon_xml_path) as f:
-                import xml.etree.ElementTree as ET
-                content = f.read().decode('utf-8')
-                root = ET.fromstring(content)
-                return root.get('version', '0.0.0')
+                    with z.open(name) as f:
+                        content = f.read().decode('utf-8')
+                        root = ET.fromstring(content)
+                        version = root.get('version', '0.0.0')
+                        return version
     except Exception as e:
-        log_error(f"Errore lettura ZIP {zip_path}: {e}")
-    return '0.0.0'
+        log_error(f"Errore lettura addon.xml da ZIP {zip_path}: {e}")
+    return None
 
 def normalize_version(version_str):
     """Normalizza la stringa di versione per il confronto"""
@@ -293,131 +284,128 @@ def cleanup_temp_install_folders():
         installed_xml = os.path.join(installed_dir, 'addon.xml')
         temp_folder_exists = os.path.exists(dest_dir)
 
-        # 1. CERCA FILE ZIP NELLA CARTELLA TEMPORANEA
-        zip_files = []
-        if temp_folder_exists:
-            for file in os.listdir(dest_dir):
-                if file.lower().endswith('.zip') and addon_id.replace('.', '-') in file.lower():
-                    zip_files.append(os.path.join(dest_dir, file))
+        # Se non esiste la cartella temporanea, salta
+        if not temp_folder_exists:
+            log_info(f"Cartella temporanea non trovata per {addon_id}: {dest_dir}")
+            continue
+
+        # Cerca file ZIP nella cartella temporanea
+        zip_files = [f for f in os.listdir(dest_dir)
+                     if f.lower().endswith('.zip') and 
+                     addon_id.replace('.', '').lower() in f.replace('.', '').replace('-', '').replace('_', '').lower()]
         
-        temp_version_available = bool(zip_files)
-        
-        # DEBUG: Log dei file trovati
         log_info(f"Trovati {len(zip_files)} file ZIP per {addon_id} in {dest_dir}")
         for z in zip_files:
-            log_info(f"  - {os.path.basename(z)}")
+            log_info(f"  - {z}")
 
         # Se esiste temp ma non esiste addon.xml installato, è una prima installazione
-        if temp_folder_exists and not os.path.exists(installed_xml):
+        if not os.path.exists(installed_xml):
             log_info(f"{addon_id} non installato ma trovato in temp → pronto per installazione")
             continue
 
-        # Se l'addon è installato (esiste addon.xml nella cartella ufficiale)
-        if os.path.exists(installed_xml):
-            # Ottieni versione installata leggendo addon.xml
-            installed_version = parse_addon_xml_version(installed_xml)
-            log_info(f"Versione installata di {addon_id}: {installed_version}")
+        # Ottieni versione installata leggendo addon.xml
+        installed_version = parse_addon_xml_version(installed_xml)
+        log_info(f"Versione installata di {addon_id}: {installed_version}")
+        
+        # Se ci sono ZIP, cerca la versione
+        temp_version = None
+        latest_zip_path = None
+        
+        for zip_file in zip_files:
+            zip_path = os.path.join(dest_dir, zip_file)
+            version = get_version_from_zip(zip_path)
+            if version:
+                temp_version = version
+                latest_zip_path = zip_path
+                log_info(f"Versione letta da {zip_file}: {temp_version}")
+                break
+        
+        # Se non è stata trovata nessuna versione valida, salta
+        if not temp_version:
+            log_info(f"Nessuna versione valida trovata negli ZIP per {addon_id}")
+            continue
+        
+        # Calcola i risultati del confronto
+        update_available = is_version_greater(temp_version, installed_version)
+        versions_equal = are_versions_equal(temp_version, installed_version)
+        installed_is_newer = is_version_greater(installed_version, temp_version)
+        
+        # DEBUG: Log dei risultati
+        log_info(f"  Update disponibile? {update_available}")
+        log_info(f"  Versioni uguali? {versions_equal}")
+        log_info(f"  Installata più recente? {installed_is_newer}")
+        
+        # Gestione aggiornamento
+        if update_available:
+            msg = f"Disponibile aggiornamento {addon_id}: {installed_version} → {temp_version}"
+            messages.append(msg)
+            log_info(msg)
             
-            # 2. PER OGNI ZIP, LEGGI LA VERSIONE
-            max_temp_version = '0.0.0'
-            latest_zip_path = None
-            
-            for zip_path in zip_files:
+            # Prompt per aggiornamento
+            if xbmcgui.Dialog().yesno(
+                ADDON_NAME,
+                f"Nuova versione disponibile per {addon_id}!\n\n"
+                f"Versione attuale: {installed_version}\n"
+                f"Nuova versione: {temp_version}\n\n"
+                "Vuoi aggiornare ora?",
+                yeslabel="Aggiorna",
+                nolabel="Ignora"
+            ):
                 try:
-                    zip_version = parse_addon_xml_from_zip(zip_path)
-                    log_info(f"Versione trovata in {os.path.basename(zip_path)}: {zip_version}")
+                    # Installa direttamente dallo ZIP
+                    log_info(f"Installazione da ZIP: {os.path.basename(latest_zip_path)}")
+                    xbmc.executebuiltin(f'InstallAddon({addon_id})')
                     
-                    # Trova la versione più recente tra gli ZIP
-                    if is_version_greater(zip_version, max_temp_version):
-                        max_temp_version = zip_version
-                        latest_zip_path = zip_path
-                except Exception as e:
-                    log_error(f"Errore analisi {zip_path}: {e}")
-            
-            # 3. CONFRONTO VERSIONI
-            if max_temp_version != '0.0.0':
-                temp_version = max_temp_version
-                update_available = is_version_greater(temp_version, installed_version)
-                versions_equal = are_versions_equal(temp_version, installed_version)
-                installed_is_newer = is_version_greater(installed_version, temp_version)
-                
-                # DEBUG: Log dei risultati
-                log_info(f"  Update disponibile? {update_available}")
-                log_info(f"  Versioni uguali? {versions_equal}")
-                log_info(f"  Installata più recente? {installed_is_newer}")
-                
-                # Gestione aggiornamento
-                if update_available:
-                    msg = f"Disponibile aggiornamento {addon_id}: {installed_version} → {temp_version}"
+                    # Opzionale: rimuovi lo ZIP dopo l'installazione
+                    try:
+                        os.remove(latest_zip_path)
+                        log_info(f"Rimosso file ZIP: {os.path.basename(latest_zip_path)}")
+                    except Exception as e:
+                        log_error(f"Errore rimozione ZIP: {e}")
+                    
+                    msg = f"Aggiornato {addon_id} alla versione {temp_version}"
                     messages.append(msg)
                     log_info(msg)
-                    
-                    # Prompt per aggiornamento
-                    if xbmcgui.Dialog().yesno(
-                        ADDON_NAME,
-                        f"Nuova versione disponibile per {addon_id}!\n\n"
-                        f"Versione attuale: {installed_version}\n"
-                        f"Nuova versione: {temp_version}\n\n"
-                        "Vuoi aggiornare ora?",
-                        yeslabel="Aggiorna",
-                        nolabel="Ignora"
-                    ):
-                        try:
-                            # Installa direttamente dallo ZIP
-                            log_info(f"Installazione da ZIP: {os.path.basename(latest_zip_path)}")
-                            xbmc.executebuiltin(f'InstallAddon({addon_id}, {latest_zip_path})')
-                            
-                            # Opzionale: rimuovi lo ZIP dopo l'installazione
-                            try:
-                                os.remove(latest_zip_path)
-                                log_info(f"Rimosso file ZIP: {os.path.basename(latest_zip_path)}")
-                            except Exception as e:
-                                log_error(f"Errore rimozione ZIP: {e}")
-                            
-                            msg = f"Aggiornato {addon_id} alla versione {temp_version}"
-                            messages.append(msg)
-                            log_info(msg)
-                            cleaned_this = True
-                        except Exception as e:
-                            error_msg = f"Errore aggiornamento {addon_id}: {e}"
-                            messages.append(error_msg)
-                            log_error(error_msg)
-                
-                # Pulizia quando le versioni sono identiche o quella installata è più nuova
-                elif versions_equal or installed_is_newer:
-                    # Rimuove da sources.xml
-                    fake_repo = {
-                        "name": source_name,
-                        "url": install['virtual_path']
-                    }
-                    
-                    if sources_manager.remove_source_from_xml(fake_repo):
-                        msg = f"Rimossa sorgente {source_name} da sources.xml"
-                        messages.append(msg)
-                        log_info(msg)
-                        cleaned_this = True
+                    cleaned_this = True
+                except Exception as e:
+                    error_msg = f"Errore aggiornamento {addon_id}: {e}"
+                    messages.append(error_msg)
+                    log_error(error_msg)
+        
+        # Pulizia quando le versioni sono identiche o quella installata è più nuova
+        elif versions_equal or installed_is_newer:
+            # Rimuove da sources.xml
+            fake_repo = {
+                "name": source_name,
+                "url": install['virtual_path']
+            }
+            
+            if sources_manager.remove_source_from_xml(fake_repo):
+                msg = f"Rimossa sorgente {source_name} da sources.xml"
+                messages.append(msg)
+                log_info(msg)
+                cleaned_this = True
 
-                    # Rimuove cartella fisica
-                    if os.path.exists(dest_dir):
+            # Rimuove cartella fisica
+            if os.path.exists(dest_dir):
+                try:
+                    # Rimuovi tutti gli ZIP
+                    for zip_file in zip_files:
+                        zip_path = os.path.join(dest_dir, zip_file)
                         try:
-                            # Rimuovi tutti gli ZIP
-                            for zip_file in zip_files:
-                                try:
-                                    os.remove(zip_file)
-                                    log_info(f"Rimosso file ZIP: {os.path.basename(zip_file)}")
-                                except Exception as e:
-                                    log_error(f"Errore rimozione ZIP: {e}")
-                            
-                            msg = f"Pulizia completata per {source_name}"
-                            messages.append(msg)
-                            log_info(msg)
-                            cleaned_this = True
+                            os.remove(zip_path)
+                            log_info(f"Rimosso file ZIP: {zip_file}")
                         except Exception as e:
-                            error_msg = f"Errore pulizia cartella temporanea: {e}"
-                            messages.append(error_msg)
-                            log_error(error_msg)
-            else:
-                log_info(f"Nessuna versione valida trovata negli ZIP per {addon_id}")
+                            log_error(f"Errore rimozione ZIP: {e}")
+                    
+                    msg = f"Pulizia completata per {source_name}"
+                    messages.append(msg)
+                    log_info(msg)
+                    cleaned_this = True
+                except Exception as e:
+                    error_msg = f"Errore pulizia cartella temporanea: {e}"
+                    messages.append(error_msg)
+                    log_error(error_msg)
 
         if cleaned_this:
             cleaned_something = True
