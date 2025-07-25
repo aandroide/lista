@@ -351,17 +351,23 @@ def cleanup_temp_install_folders():
                 yeslabel="Aggiorna",
                 nolabel="Ignora"
             ):
-                # Apri il file manager per installazione manuale
-                log_info(f"Apertura file manager per installazione ZIP: {latest_zip_path}")
+                # Aggiungi la sorgente a sources.xml
+                fake_repo = {
+                    "name": source_name,
+                    "url": install['virtual_path']
+                }
+                sources_manager.add_source_to_xml(fake_repo)
                 
-                # Converti il percorso in formato URI
-                if dest_dir.startswith("special://"):
-                    dest_folder_uri = dest_dir
-                else:
-                    dest_folder_uri = f"file://{dest_dir}"
+                # Apri la finestra di installazione da ZIP usando il nome della sorgente
+                log_info(f"Apertura file manager per installazione ZIP: {source_name}")
+                log_info(f"Tentativo di aprire: ActivateWindow(installzip, '{source_name}', return)")
                 
-                # Apri la finestra di installazione da ZIP
-                xbmc.executebuiltin(f'ActivateWindow(installzip,"{dest_folder_uri}",return)')
+                # Tentativo di aprire la finestra di installazione
+                try:
+                    xbmc.executebuiltin(f'ActivateWindow(installzip,"{source_name}",return)')
+                    log_info("ActivateWindow eseguita con successo")
+                except Exception as e:
+                    log_error(f"Errore nell'esecuzione di ActivateWindow: {e}")
                 
                 # Scrivi un file marker per ricordare l'azione dell'utente
                 marker_path = os.path.join(dest_dir, ".install_prompted")
@@ -375,8 +381,6 @@ def cleanup_temp_install_folders():
                 msg = f"{addon_id} pronto per aggiornamento manuale da ZIP"
                 messages.append(msg)
                 log_info(msg)
-                # Non contrassegniamo come pulito, verrà gestito al prossimo riavvio
-                cleaned_this = False
         
         # Pulizia quando le versioni sono identiche E è stato fatto il prompt
         elif versions_equal and os.path.exists(os.path.join(dest_dir, ".install_prompted")):
