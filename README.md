@@ -31,10 +31,17 @@ https://aandroide.github.io/repo/.
 
 ### 🧩 YouTube e Trakt Addon
 
-- Funzionano **esattamente come gli altri repository**, ma con una differenza:
-- Viene scaricato automaticamente il file `.zip` più recente dalla **pagina GitHub Releases**
-- Il file viene salvato in una cartella dedicata (es. `youtube_install`o 'trakt install') visibile in "Installa da file ZIP"
-- In questi 2 casi, il check non diventerà verde in quanto sono trattate come repo speciali che scaricano sempre l'ultima versione disponibile da github e soltanto dopo aver installato l'addon, al prossimo riavvio di kodi è stata studiata una pulizia automatica che rimuove I file zip per recuperare spazio.
+- Gli addon YouTube e Trakt funzionano come gli altri repository, ma con alcune differenze importanti:
+
+- Il file .zip più recente viene scaricato automaticamente dalla sezione GitHub Releases.
+
+- Il file ZIP, viene salvato in una cartella dedicata (es. youtube_install o trakt_install), visibile nella sezione "Installa da file ZIP" di Kodi.
+
+- Questi addon non appaiono con il check verde nella lista, poiché vengono trattati come repository speciali: non si basano su sources.xml, ma scaricano direttamente la versione più aggiornata.
+
+- Se su Kodi è installata una versione obsoleta, al riavvio successivo verrà mostrato un dialogo di avviso, con il numero di versione attuale e quello dell’ultima disponibile, offrendo la possibilità di aggiornare manualmente.
+
+- Una volta completata l'installazione, al riavvio successivo di Kodi verrà eseguita una pulizia automatica, che rimuove il file ZIP scaricato per liberare spazio.
 
 ### 💬 Supporto via QR Code/link
 - Oltre il classico URL è presente anche in formato QR code.
