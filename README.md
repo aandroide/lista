@@ -38,7 +38,7 @@ https://aandroide.github.io/repo/.
 
 ### 💬 Supporto via QR Code/link
 Oltre il classico URL è presente anche in formato QR code.
-Per gli addon che non hanno un canale di supporto Telegram, verrà mostrato il link/ Qr Code che porta alla fonte ufficiale di supporto.
+- Per gli addon che non hanno un canale di supporto Telegram, verrà mostrato il link/ Qr Code che porta alla fonte ufficiale di supporto.
 
 ### 🛠️ Personalizzazione
 - Impostazioni configurabili da GUI:
