@@ -108,8 +108,8 @@ Con **Addon & Repo Installer**:
 
 ### 📲➣ Telegram incluso
 - Ogni repo può includere un link Telegram.
-- Viene generato **QR Code** scansionabile.
-- In mancanza, viene mostrato un logo "no Telegram" barrato.
+- Oltre al classico URL verrà generato un QR Code scansionabile.
+- In mancanza di una canale Telegram, verrà mostrato il link di supporto ufficial, e solo in assenza totale di una fonte di supporto verrà mostrato il logo "no Telegram" barrato con la dicitura nessun link disponibile.
 
 ### 🤳 Facile da usare anche con il  telecomando
 - Navigazione ottimizzata per Fire TV.
