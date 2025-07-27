@@ -37,7 +37,7 @@ https://aandroide.github.io/repo/.
 - In questi 2 casi, il check non diventerà verde in quanto sono trattate come repo speciali che scaricano sempre l'ultima versione disponibile da github e soltanto dopo aver installato l'addon, al prossimo riavvio di kodi è stata studiata una pulizia automatica che rimuove I file zip per recuperare spazio.
 
 ### 💬 Supporto via QR Code/link
-Oltre il classico URL è presente anche in formato QR code.
+- Oltre il classico URL è presente anche in formato QR code.
 - Per gli addon che non hanno un canale di supporto Telegram, verrà mostrato il link/ Qr Code che porta alla fonte ufficiale di supporto.
 
 ### 🛠️ Personalizzazione
