@@ -93,7 +93,7 @@
     },
     {
       "name": "Rock Clean repo",
-      "description": "Addon per la pulizia e la manutenzione di Kodi, nel caso si abiliti la pulizia automatica è importanete evitare di abilitarla per la sezione Add-on Data per non perdere le cofigurazioni delle skin e degli addons.",
+      "description": "Addon per la pulizia e la manutenzione di Kodi, nel caso si abiliti la pulizia automatica è importanete NON ABILITARE la voce Add-on Data per la sezione AUTO CLEAN nelle impostazioni dell'addon per non perdere le cofigurazioni delle skin e degli addons.",
       "url": "http://www.rockodi.com",
       "telegram": "",
       "Titolo Label": "Fonte di supporto"
