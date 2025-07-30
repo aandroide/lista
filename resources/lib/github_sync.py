@@ -6,7 +6,7 @@ import xbmc
 import xbmcaddon
 import xbmcvfs
 import xbmcgui
-from .version_utils import log_info, log_error
+from resources.lib.version_utils import log_info, log_error
 
 ADDON = xbmcaddon.Addon()
 ADDON_ID = ADDON.getAddonInfo('id')
