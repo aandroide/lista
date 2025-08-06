@@ -29,9 +29,23 @@ https://aandroide.github.io/repo/.
 - Stato aggiornato in tempo reale.
 - Nessun riavvio richiesto per aggiornare la GUI.
 
-### 💬 Supporto Telegram via QR Code
-- Se presente, il link Telegram viene trasformato in **QR code**.
-- In assenza del link, viene mostrata un’immagine alternativa con **logo barrato**.
+### 🧩 YouTube e Trakt Addon
+
+- Gli addon YouTube e Trakt funzionano come gli altri repository, ma con alcune differenze importanti:
+
+- Il file .zip più recente viene scaricato automaticamente dalla sezione GitHub Releases.
+
+- Il file ZIP, viene salvato in una cartella dedicata (es. youtube_install o trakt_install), visibile nella sezione "Installa da file ZIP" di Kodi.
+
+- Questi addon non appaiono con il check verde nella lista, poiché vengono trattati come repository speciali: non si basano su sources.xml, ma scaricano direttamente la versione più aggiornata.
+
+- Se su Kodi è installata una versione obsoleta, al riavvio successivo verrà mostrato un dialogo di avviso, con il numero di versione attuale e quello dell’ultima disponibile, offrendo la possibilità di aggiornare manualmente.
+
+- Una volta completata l'installazione, al riavvio successivo di Kodi verrà eseguita una pulizia automatica, che rimuove il file ZIP scaricato per liberare spazio.
+
+### 💬 Supporto via QR Code/link
+- Oltre il classico URL è presente anche in formato QR code.
+- Per gli addon che non hanno un canale di supporto Telegram, verrà mostrato il link/ Qr Code che porta alla fonte ufficiale di supporto.
 
 ### 🛠️ Personalizzazione
 - Impostazioni configurabili da GUI:
@@ -74,8 +88,7 @@ https://aandroide.github.io/repo/.
 
 ## 🔄 Compatibilità
 - Kodi 20+ (testato su Android e Windows)
-- Nessuna modifica diretta a `sources.xml`
-- Supporta aggiornamento dinamico senza riavvio
+- Supporta aggiornamento dinamico ad ogni avvio
 
 ---
 
@@ -102,10 +115,10 @@ Con **Addon & Repo Installer**:
 
 ### 📲➣ Telegram incluso
 - Ogni repo può includere un link Telegram.
-- Viene generato **QR Code** scansionabile.
-- In mancanza, viene mostrato un logo "no Telegram" barrato.
+- Oltre al classico URL verrà generato un QR Code scansionabile.
+- In mancanza di una canale Telegram, verrà mostrato il link di supporto ufficial, e solo in assenza totale di una fonte di supporto verrà mostrato il logo "no Telegram" barrato con la dicitura nessun link disponibile.
 
-### 🤳 Facile da usare anche col telecomando
+### 🤳 Facile da usare anche con il  telecomando
 - Navigazione ottimizzata per Fire TV.
 - GUI a schermo intero, leggibile e chiara.
 - Nessun bisogno di tastiere o digitazioni complesse.
@@ -113,3 +126,6 @@ Con **Addon & Repo Installer**:
 **Risparmia tempo. Evita errori. Installa tutto con pochi clic.**
 
 ---
+
+**Ringraziamenti:**
+- Grazie a Timmy89 per aver contribuito a questo progetto.
