@@ -126,3 +126,6 @@ Con **Addon & Repo Installer**:
 **Risparmia tempo. Evita errori. Installa tutto con pochi clic.**
 
 ---
+
+**Ringraziamenti:**
+- Grazie a Timmy89 per aver contribuito a questo progetto.
