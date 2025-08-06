@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <window type="dialog" id="13000">
-  <defaultcontrol>100</defaultcontrol>
+  <defaultcontrol>500</defaultcontrol>
   <allowoverlay>true</allowoverlay>
   <controls>
     <!-- Sfondo trasparente globale -->
@@ -45,8 +45,9 @@
         <texture colordiffuse="66FFFFFF">white.png</texture>
       </control>
 
-      <!-- LISTA DEI REPO - MODIFICATO PER ICONE -->
+      <!-- LISTA DEI REPO - VERSIONE CORRETTA -->
       <control type="list" id="100">
+        <focusable>true</focusable>
         <left>40</left>
         <top>100</top>
         <width>880</width>
@@ -55,8 +56,10 @@
         <pagecontrol>61</pagecontrol>
         <scrolltime>200</scrolltime>
         <orientation>vertical</orientation>
-        <ondown>SetFocus(500)</ondown>
-        <onup>noop</onup>
+        
+        <!-- Navigazione semplificata -->
+        <ondown>500</ondown>
+        <onup>500</onup>
 
         <itemlayout height="50" width="880">
           <control type="image">
@@ -151,8 +154,9 @@
         </focusedlayout>
       </control>
 
-      <!-- Pulsanti -->
+      <!-- PULSANTI CON NAVIGAZIONE SEMPLIFICATA -->
       <control type="button" id="500">
+        <focusable>true</focusable>
         <label>Aggiungi Tutti</label>
         <left>40</left>
         <top>810</top>
@@ -163,11 +167,12 @@
         <textcolor>white</textcolor>
         <texturenofocus border="0,0,0,0">button-nofocus.png</texturenofocus>
         <texturefocus border="0,0,0,0">button-focus.png</texturefocus>
-        <ondown>SetFocus(202)</ondown>
-        <onup>SetFocus(100)</onup>
+        <onup>100</onup>
+        <ondown>202</ondown>
       </control>
 
       <control type="button" id="202">
+        <focusable>true</focusable>
         <label>Apri Gestore File</label>
         <left>40</left>
         <top>880</top>
@@ -178,29 +183,15 @@
         <textcolor>white</textcolor>
         <texturenofocus border="0,0,0,0">button-nofocus.png</texturenofocus>
         <texturefocus border="0,0,0,0">button-focus.png</texturefocus>
-        <ondown>SetFocus(203)</ondown>
-        <onup>SetFocus(500)</onup>
-      </control>
-
-      <control type="button" id="203">
-        <label>Apri Installa da file zip</label>
-        <left>40</left>
-        <top>950</top>
-        <width>880</width>
-        <height>60</height>
-        <font>font13</font>
-        <align>center</align>
-        <textcolor>white</textcolor>
-        <texturenofocus border="0,0,0,0">button-nofocus.png</texturenofocus>
-        <texturefocus border="0,0,0,0">button-focus.png</texturefocus>
-        <ondown>SetFocus(700)</ondown>
-        <onup>SetFocus(202)</onup>
+        <onup>500</onup>
+        <ondown>700</ondown>
       </control>
 
       <control type="button" id="700">
+        <focusable>true</focusable>
         <label>Rimuovi Tutti</label>
         <left>40</left>
-        <top>1020</top>
+        <top>950</top> 
         <width>880</width>
         <height>60</height>
         <font>font13</font>
@@ -208,8 +199,8 @@
         <textcolor>white</textcolor>
         <texturenofocus border="0,0,0,0">button-nofocus.png</texturenofocus>
         <texturefocus border="0,0,0,0">button-focus.png</texturefocus>
-        <ondown>SetFocus(500)</ondown>
-        <onup>SetFocus(203)</onup>
+        <onup>202</onup>
+        <ondown>100</ondown>
       </control>
     </control>
 

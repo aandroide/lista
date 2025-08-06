@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon id="plugin.program.addonrepoinstaller"
-       name="Addon & Repo Installer"
-       version="1.0.0"
+       name="Addon &amp; Repo Installer"
+       version="1.0.1"
        provider-name="Aandroide">
 
     <requires>
@@ -22,13 +22,17 @@
             leggendo da un file addons.json (locale o remoto su GitHub). Supporta pulsanti,
             QR code Telegram e aggiornamenti dinamici. Utile per utenti esperti e principianti.
         </description>
-        <disclaimer lang="it">Usa l’addon sotto la tua responsabilità. Nessun contenuto viene distribuito direttamente.</disclaimer>
+        <disclaimer lang="it">Usa l’addon sotto la tua responsabilità. Nessun contenuto viene distribuito direttamente.
+        [COLOR yellow]Questo addon non sostituisce le guide ufficiali.[/COLOR]</disclaimer>
         <license>MIT</license>
         <platform>all</platform>
         <source>https://github.com/aandroide/lista</source>
         <assets>
-            <icon>icon.png</icon>
-            <fanart>resources/skins/default/media/background.png</fanart>
+            <icon>resources/media/icon.png</icon>
+            <fanart>resources/media/background.png</fanart>
+            <screenshot>resources/media/screenshot_01.png</screenshot>
+            <screenshot>resources/media/screenshot_02.png</screenshot>
+            <screenshot>resources/media/screenshot_03.png</screenshot>
         </assets>
     </extension>
 </addon>
