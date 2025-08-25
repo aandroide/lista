@@ -125,6 +125,15 @@
       "url": "https://goldenfreddy0703.github.io/repository.ytmusic/",
       "telegram": "https://github.com/anxdpanic/plugin.video.youtube/issues",
       "Titolo Label": "Fonte di supporto"
+    },
+	{
+	  "name": "Internet Archive Game Launcher",
+      "description": "Repo per l'addon Archive Game Launcher,per il corretto funzionamento sarà necessario creare un account gratuito su https://archive.org/",
+      "url": "https://github.com/zach-morris/repository.zachmorris/raw/master/repository.zachmorris/repository.zachmorris-1.0.4.zip",
+      "telegram": "https://github.com/zach-morris/plugin.program.iagl",
+      "Titolo Label": "Fonte di supporto"
     }
+		
   ]
 }
+
