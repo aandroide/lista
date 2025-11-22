@@ -23,6 +23,7 @@ from resources.lib.sources_manager import add_source_to_xml, remove_source_from_
 KODINERDS_REPO_ID = "repository.kodinerds"
 SANDMANN_REPO_ID = "repository.sandmann79.plugins"
 ELEMENTUM_REPO_ID = "repository.elementumorg"
+IAGL_REPO_ID = "repository.zachmorris"
 
 def is_repo_installed(repo):
     """Controlla se un repository è installato"""
@@ -35,6 +36,8 @@ def is_repo_installed(repo):
         return xbmc.getCondVisibility(f"System.HasAddon({SANDMANN_REPO_ID})") == 1
     if "elementum" in name:
         return xbmc.getCondVisibility(f"System.HasAddon({ELEMENTUM_REPO_ID})") == 1
+    if "iagl" in name or "zachmorris" in name or "zach morris" in name:
+        return xbmc.getCondVisibility(f"System.HasAddon({IAGL_REPO_ID})") == 1
     
     return url in get_existing_sources()
 
@@ -52,6 +55,10 @@ def install_repo(repo):
             return download_sandmann_repo()
         elif "elementum" in lower:
             from resources.lib.elementum_repo_installer import download_elementum_repo
+            return download_elementum_repo()
+        elif "iagl" in lower or "zachmorris" in lower or "zach morris" in lower:
+            from resources.lib.iagl_repo_installer import download_iagl_repo
+            return download_iagl_repo()
             return download_elementum_repo()
         else:
             return add_source_to_xml(repo)
@@ -71,6 +78,8 @@ def uninstall_repo(repo):
             return remove_physical_repo(SANDMANN_REPO_ID)
         elif "elementum" in lower:
             return remove_physical_repo(ELEMENTUM_REPO_ID)
+        elif "iagl" in lower or "zachmorris" in lower or "zach morris" in lower:
+            return remove_physical_repo(IAGL_REPO_ID)
         else:
             return remove_source_from_xml(repo)
     except Exception as e:
