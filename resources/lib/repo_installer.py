@@ -50,19 +50,23 @@ def install_repo(repo):
         if "kodinerds" in lower:
             from resources.lib.kodinerds_downloader import download_latest_kodinerds_zip
             return download_latest_kodinerds_zip()
+
         elif "sandmann" in lower:
             from resources.lib.sandmann_repo_installer import download_sandmann_repo
             return download_sandmann_repo()
+
         elif "elementum" in lower:
             from resources.lib.elementum_repo_installer import download_elementum_repo
             return download_elementum_repo()
+
         elif "iagl" in lower or "zachmorris" in lower or "zach morris" in lower:
-            from resources.lib.iagl_repo_installer import download_iagl_repo
-            return download_iagl_repo()
-            return download_elementum_repo()
+            from resources.lib.zacmorris_repo_installer import download_zacmorris_repo
+            return download_zacmorris_repo()
+
         else:
             return add_source_to_xml(repo)
-    except Exception as e:
+
+    except Exception:
         log(f"Errore install {name}: {traceback.format_exc()}", xbmc.LOGERROR)
         return False
 
@@ -74,15 +78,20 @@ def uninstall_repo(repo):
     try:
         if "kodinerds" in lower:
             return remove_physical_repo(KODINERDS_REPO_ID)
+
         elif "sandmann" in lower:
             return remove_physical_repo(SANDMANN_REPO_ID)
+
         elif "elementum" in lower:
             return remove_physical_repo(ELEMENTUM_REPO_ID)
+
         elif "iagl" in lower or "zachmorris" in lower or "zach morris" in lower:
             return remove_physical_repo(IAGL_REPO_ID)
+
         else:
             return remove_source_from_xml(repo)
-    except Exception as e:
+
+    except Exception:
         log(f"Errore uninstall {name}: {traceback.format_exc()}", xbmc.LOGERROR)
         return False
 
@@ -125,7 +134,10 @@ def uninstall_all_repos(sources, progress_callback=None):
             
     return removed, errors
 
-# Funzioni per installazione generica da GitHub/HTML
+# ------------------------------
+# Installazione generica da GitHub Release
+# ------------------------------
+
 def install_github_release(source_predicate, repo_path_extractor, asset_filter, addon_name):
     """
     - source_predicate(s: dict) -> bool
@@ -142,14 +154,19 @@ def install_github_release(source_predicate, repo_path_extractor, asset_filter, 
 
     try:
         path = repo_path_extractor(url)
-        api  = path if path.lower().startswith('http') else f"https://api.github.com/repos/{path}/releases/latest"
+
+        # Se path NON è un URL --> genera API GitHub ufficiale
+        api = path if path.lower().startswith('http') else f"https://api.github.com/repos/{path}/releases/latest"
+
         with urllib.request.urlopen(api, timeout=15) as resp:
             data = json.loads(resp.read().decode('utf-8'))
 
         assets = data.get('assets', [])
         z = next((a for a in assets if asset_filter(a.get('name', ''))), None)
+
         if not z:
             raise Exception("Nessun ZIP trovato nella release")
+
         return download_and_extract_zip(z['browser_download_url'], addon_name)
 
     except Exception as e:
@@ -157,6 +174,10 @@ def install_github_release(source_predicate, repo_path_extractor, asset_filter, 
         xbmcgui.Dialog().notification(addon_name, f"Errore: {e}",
                                       xbmcgui.NOTIFICATION_ERROR, 3000)
         return False
+
+# ------------------------------
+# Installazione da HTML
+# ------------------------------
 
 def install_from_html(source_predicate, zip_pattern, addon_name):
     """
@@ -174,10 +195,13 @@ def install_from_html(source_predicate, zip_pattern, addon_name):
     try:
         with urllib.request.urlopen(base, timeout=15) as resp:
             html = resp.read().decode('utf-8')
+
         links = re.findall(r'href="([^"]+\.zip)"', html, re.IGNORECASE)
         matches = [l for l in links if re.search(zip_pattern, l)]
+
         if not matches:
             raise Exception("Nessun file ZIP corrispondente trovato")
+
         zip_url = urljoin(base, matches[0])
         return download_and_extract_zip(zip_url, addon_name)
 
