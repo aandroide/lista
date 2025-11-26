@@ -129,13 +129,14 @@
 	{
 	  "name": "Internet Archive Game Launcher",
       "description": "Repo per l'addon Archive Game Launcher,per il corretto funzionamento sarà necessario creare un account gratuito su https://archive.org/",
-      "url": "https://github.com/zach-morris/repository.zachmorris",
+      "url": "https://api.github.com/repos/zach-morris/repository.zachmorris/releases/latest",
 	  "telegram": "https://github.com/zach-morris/plugin.program.iagl",
       "Titolo Label": "Fonte di supporto"
     }
 		
   ]
 }
+
 
 
 
