@@ -23,6 +23,7 @@ from resources.lib.sources_manager import add_source_to_xml, remove_source_from_
 KODINERDS_REPO_ID = "repository.kodinerds"
 SANDMANN_REPO_ID = "repository.sandmann79.plugins"
 ELEMENTUM_REPO_ID = "repository.elementumorg"
+ZACHMORRIS_REPO_ID = "repository.zachmorris"
 
 def is_repo_installed(repo):
     """Controlla se un repository è installato"""
@@ -35,6 +36,8 @@ def is_repo_installed(repo):
         return xbmc.getCondVisibility(f"System.HasAddon({SANDMANN_REPO_ID})") == 1
     if "elementum" in name:
         return xbmc.getCondVisibility(f"System.HasAddon({ELEMENTUM_REPO_ID})") == 1
+    if "zach morris" in name:
+        return xbmc.getCondVisibility(f"System.HasAddon({ZACHMORRIS_REPO_ID})") == 1
     
     return url in get_existing_sources()
 
@@ -53,6 +56,9 @@ def install_repo(repo):
         elif "elementum" in lower:
             from resources.lib.elementum_repo_installer import download_elementum_repo
             return download_elementum_repo()
+        elif "zach morris" in lower:
+            from resources.lib.zachmorris_repo_installer import download_zachmorris_repo
+            return download_zachmorris_repo()
         else:
             return add_source_to_xml(repo)
     except Exception as e:
@@ -71,6 +77,8 @@ def uninstall_repo(repo):
             return remove_physical_repo(SANDMANN_REPO_ID)
         elif "elementum" in lower:
             return remove_physical_repo(ELEMENTUM_REPO_ID)
+        elif "zach morris" in lower:
+            return remove_physical_repo(ZACHMORRIS_REPO_ID)
         else:
             return remove_source_from_xml(repo)
     except Exception as e:
