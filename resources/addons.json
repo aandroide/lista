@@ -128,7 +128,7 @@
     },
     {
       "name": "Zach Morris repo (IAGL)",
-      "description": "Repo per l'addon IAGL (Internet Archive Game Launcher): permette di sfogliare e avviare giochi dall'Internet Archive direttamente da Kodi. Richiede Kodi 20 o superiore. Dopo aver aggiunto la repo, installa IAGL da Installa da repository.\n\nPer il corretto funzionamento è necessario creare un account gratuito su https://archive.org/ e inserirlo nelle impostazioni di IAGL: senza account alcuni giochi non si scaricano.",
+      "description": "Repo per l'addon IAGL (Internet Archive Game Launcher): permette di sfogliare e avviare giochi dall'Internet Archive direttamente da Kodi. Richiede Kodi 20 o superiore. Dopo aver aggiunto la repo, installa IAGL da Installa da repository.\n\nPer il corretto funzionamento è necessario creare un account gratuito su https://archive.org/ e inserirlo nelle impostazioni di IAGL: senza account i giochi non verranno scaricati.",
       "url": "https://github.com/zach-morris/repository.zachmorris/releases/",
       "telegram": "https://github.com/zach-morris/plugin.program.iagl/issues",
       "Titolo Label": "Fonte di supporto"
