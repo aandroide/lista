@@ -36,7 +36,7 @@ ADDON_PATH   = xbmcvfs.translatePath(ADDON.getAddonInfo('path'))
 
 # Percorsi e settings
 LOCAL_JSON      = os.path.join(ADDON_PATH, 'resources', 'addons.json')
-GITHUB_USER     = ADDON.getSetting("github_user").strip() or "aandroide"
+GITHUB_USER     = ADDON.getSetting("github_user").strip() or "Rowena72"
 GITHUB_REPO     = ADDON.getSetting("github_repo").strip() or "lista"
 GITHUB_BRANCH   = ADDON.getSetting("github_branch").strip() or "master"
 REMOTE_URL      = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/{GITHUB_BRANCH}/resources/addons.json"
