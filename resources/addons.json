@@ -135,7 +135,7 @@
     },
     {
       "name": "Kodi Mirror repo (ufficiale)",
-      "description": "Mirror ufficiale di Team Kodi con gli zip di tutti gli addon del repo ufficiale. Utile se dal repo ufficiale non riesci a scaricare un addon: aggiungi la sorgente, apri la cartella con il nome della tua versione di Kodi (per esempio nexus per Kodi 20, omega per Kodi 21) e installa lo zip con Installa da file zip. Se il repo ufficiale non risponde, anche le dipendenze dell'addon vanno scaricate allo stesso modo.\n\nEsempio: il pacchetto della lingua italiana si trova nella cartella resource.language.it_it, dentro la cartella della tua versione di Kodi.\n\nAttenzione a selezionare la versione corretta e l'architettura (32 o 64 bit) in base al proprio sistema operativo.",
+      "description": "Mirror ufficiale di Team Kodi, utile se non riesci a scaricare un addon dal repo ufficiale. Apri la cartella della tua versione di Kodi (nexus per Kodi 20, omega per Kodi 21) e installa lo zip con Installa da file zip. Le dipendenze vanno scaricate allo stesso modo. Esempio: la lingua italiana è in resource.language.it_it.\n\nAttenzione a selezionare la versione corretta e l'architettura (32 o 64 bit) in base al proprio sistema operativo.",
       "url": "https://mirrors.kodi.tv/addons/",
       "telegram": "https://kodi.wiki/view/Mirrors",
       "Titolo Label": "Fonte di supporto"
